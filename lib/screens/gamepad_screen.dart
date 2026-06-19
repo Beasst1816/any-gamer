@@ -21,8 +21,18 @@ class GamepadScreen extends StatelessWidget {
           // The Active Controller Layout
           Center(
             child: isXbox
-                ? XboxLayout(onSignal: (s) => networkService.sendCommand(GamepadCommandFactory.buttonDown(s)))
-                : PSLayout(onSignal: (s) => networkService.sendCommand(GamepadCommandFactory.buttonDown(s))),
+                ? XboxLayout(onSignal: (String id, bool isPressed) {
+              final cmd = isPressed
+                  ? GamepadCommandFactory.buttonDown(id)   // finger touched
+                  : GamepadCommandFactory.buttonUp(id);    // finger lifted
+              networkService.sendCommand(cmd);
+            },)
+                : PSLayout(onSignal: (String id, bool isPressed) {
+              final cmd = isPressed
+                  ? GamepadCommandFactory.buttonDown(id)   // finger touched
+                  : GamepadCommandFactory.buttonUp(id);    // finger lifted
+              networkService.sendCommand(cmd);
+            },),
           ),
 
           // Network Status & Layout Toggle Bar
@@ -64,30 +74,48 @@ class GamepadScreen extends StatelessWidget {
     const SizedBox(width: 10),
 
     // Connect/Disconnect Button
-    ElevatedButton.icon(
-    onPressed: () {
-    if (networkService.isConnected) {
-    networkService.disconnect();
-    } else {
-    networkService.connect();
-    }
-    },
-    icon: Icon(
-    networkService.isConnected ? Icons.link_off : Icons.link,
-    color: networkService.isConnected ? Colors.red : Colors.green,
-    ),
-    label: Text(
-    networkService.isConnected ? "Disconnect" : "Connect",
-    style: const TextStyle(color: Colors.white),
-    ),
-    style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[900]),
-    ),
+      // Connect/Disconnect Button
+      ElevatedButton.icon(
+        // DISABLE the button if the app is currently trying to connect
+        onPressed: (networkService.connectionState == ServiceConnectionState.connecting)
+            ? null
+            : () {
+          if (networkService.isConnected) {
+            networkService.disconnect();
+          } else {
+            networkService.connect();
+          }
+        },
+        icon: Icon(
+          networkService.isConnected ? Icons.link_off : Icons.link,
+          color: networkService.isConnected ? Colors.red : Colors.green,
+        ),
+        label: Text(
+          networkService.connectionState == ServiceConnectionState.connecting
+              ? "Connecting..."
+              : (networkService.isConnected ? "Disconnect" : "Connect"),
+          style: const TextStyle(color: Colors.white),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey[900],
+          disabledBackgroundColor: Colors.grey[800], // Greys out when tapped
+        ),
+      ),
     ],
     ),
 
     // Layout Switcher
     ElevatedButton(
-    onPressed: () => context.read<LayoutNotifier>().toggleLayout(),
+      onPressed: () {
+        final notifier = context.read<LayoutNotifier>();
+        notifier.toggleLayout();  // still updates the UI
+
+        // NOW also tell the server
+        final profileId = notifier.isXbox ? 'xbox360' : 'ds4';
+        networkService.sendCommand(
+          GamepadCommandFactory.setProfile(profileId),
+        );
+      },
     style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[800]),
     child: Text(
     isXbox ? "Switch to PS" : "Switch to Xbox",

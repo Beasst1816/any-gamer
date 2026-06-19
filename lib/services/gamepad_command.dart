@@ -17,6 +17,7 @@ enum CommandType {
   axis,   // analogue stick axis: LS_X, LS_Y, RS_X, RS_Y, LT, RT
   dpad,   // 8-way hat switch: up / down / left / right / diagonals
   rumble, // force-feedback intensity command
+  system,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -181,4 +182,12 @@ extension GamepadCommandFactory on GamepadCommand {
           type: CommandType.rumble,
           id: 'RUMBLE',
           value: (left.clamp(0, 15) << 4) | right.clamp(0, 15));
+
+  static GamepadCommand setProfile(String profileId) {
+    return GamepadCommand(
+      type: CommandType.system,
+      id: 'SET_PROFILE',
+      value: profileId == 'xbox360' ? 0 : 1,  // 0 = Xbox 360, 1 = DS4
+    );
+  }
 }

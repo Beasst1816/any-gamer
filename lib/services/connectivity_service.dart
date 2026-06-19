@@ -80,7 +80,7 @@ class LogEntry {
 /// ```
 class ConnectivityService extends ChangeNotifier {
   ConnectivityService({
-    String wifiHost = '10.128.235.193',
+    String wifiHost = '10.42.224.212',
     int wifiPort = 5000,
     String? bleDeviceName, // null → first device advertising kBleServiceUuid
   })  : _wifiHost = wifiHost,
