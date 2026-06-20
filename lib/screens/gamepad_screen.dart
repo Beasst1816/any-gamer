@@ -1,130 +1,173 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/layout_notifier.dart';
+import '../providers/settings_notifier.dart';
 import '../services/connectivity_service.dart';
 import '../services/gamepad_command.dart';
+import '../theme/app_theme.dart';
 import '../widgets/xbox_layout.dart';
 import '../widgets/ps_layout.dart';
+import '../widgets/settings_overlay.dart';
 
-class GamepadScreen extends StatelessWidget {
-  const GamepadScreen({Key? key}) : super(key: key);
+class GamepadScreen extends StatefulWidget {
+  const GamepadScreen({super.key});
+
+  @override
+  State<GamepadScreen> createState() => _GamepadScreenState();
+}
+
+class _GamepadScreenState extends State<GamepadScreen>
+    with WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final network = context.read<ConnectivityService>();
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      network.disconnect(); // cancels reconnect timer, closes socket
+    } else if (state == AppLifecycleState.resumed) {
+      network.connect();   // re-establishes on return
+    }
+  }
+
+  void _openSettings() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'SettingsDismiss',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return const Align(
+          alignment: Alignment.centerRight,
+          child: SettingsOverlay(),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1.0, 0.0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          child: child,
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isXbox = context.watch<LayoutNotifier>().isXbox;
     final networkService = context.watch<ConnectivityService>();
+    final isXbox = context.watch<LayoutNotifier>().isXbox;
+    final settings = context.watch<SettingsNotifier>();
+    // SettingsNotifier.deadzone is 0–30 (UI units), convert to 0.0–0.30 float
+    final deadzone = (settings.deadzone / 100.0).clamp(0.0, 0.3);
+    // sensitivity is 0–100 UI → 0.5–2.0 multiplier
+    final sensitivity = (0.5 + (settings.sensitivity / 100.0) * 1.5).clamp(0.5, 2.0);
+
+    void handleSignal(String id, bool isPressed) {
+      final cmd = isPressed
+          ? GamepadCommandFactory.buttonDown(id)
+          : GamepadCommandFactory.buttonUp(id);
+      networkService.sendCommand(cmd);
+    }
+
+    void handleAxis(String id, double value) {
+      networkService.sendCommand(GamepadCommandFactory.axisUpdate(id, value));
+    }
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // The Active Controller Layout
-          Center(
-            child: isXbox
-                ? XboxLayout(onSignal: (String id, bool isPressed) {
-              final cmd = isPressed
-                  ? GamepadCommandFactory.buttonDown(id)   // finger touched
-                  : GamepadCommandFactory.buttonUp(id);    // finger lifted
-              networkService.sendCommand(cmd);
-            },)
-                : PSLayout(onSignal: (String id, bool isPressed) {
-              final cmd = isPressed
-                  ? GamepadCommandFactory.buttonDown(id)   // finger touched
-                  : GamepadCommandFactory.buttonUp(id);    // finger lifted
-              networkService.sendCommand(cmd);
-            },),
-          ),
+      backgroundColor: AppTheme.kBackground,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final h = constraints.maxHeight;
 
-          // Network Status & Layout Toggle Bar
-    // Network Status & Layout Toggle Bar
-    Positioned(
-    top: 20,
-    left: 20,
-    right: 20,
-    child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-    // Network Controls Row
-    Row(
-    children: [
-    // Mode Selector Dropdown
-    Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    decoration: BoxDecoration(
-    color: Colors.grey[900],
-    borderRadius: BorderRadius.circular(8),
-    ),
-    child: DropdownButton<ActiveMode>(
-    value: networkService.activeMode,
-    dropdownColor: Colors.grey[900],
-    underline: const SizedBox(),
-    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-    items: ActiveMode.values.map((mode) {
-    return DropdownMenuItem(
-    value: mode,
-    child: Text(mode.name.toUpperCase()),
-    );
-    }).toList(),
-    onChanged: (mode) {
-    if (mode != null) networkService.setMode(mode);
-    },
-    ),
-    ),
+          if (w == 0 || h == 0) return const SizedBox.shrink();
 
-    const SizedBox(width: 10),
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: w * 0.04, vertical: h * 0.05),
+            child: Stack(
+              children: [
+                // 1. Main HUD card
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.kHudSurface,
+                          border: Border.all(color: AppTheme.kHudBorder),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
-    // Connect/Disconnect Button
-      // Connect/Disconnect Button
-      ElevatedButton.icon(
-        // DISABLE the button if the app is currently trying to connect
-        onPressed: (networkService.connectionState == ServiceConnectionState.connecting)
-            ? null
-            : () {
-          if (networkService.isConnected) {
-            networkService.disconnect();
-          } else {
-            networkService.connect();
-          }
+                // 2. Active Controller Layout
+                Positioned.fill(
+                  child: isXbox
+                      ? XboxLayout(onSignal: handleSignal, onAxis: handleAxis, onOpenSettings: _openSettings, deadzoneNormalized: deadzone, sensitivityMultiplier: sensitivity)
+                      : PSLayout(onSignal: handleSignal, onAxis: handleAxis, onOpenSettings: _openSettings, deadzoneNormalized: deadzone, sensitivityMultiplier: sensitivity),
+                ),
+
+                // 3. Status bar (Minimized to a tiny LED dot)
+                Positioned(
+                  top: h * 0.06,
+                  left: w * 0.04,
+                  child: _buildStatusBar(networkService, h),
+                ),
+
+                // The old Settings Gear has been completely deleted!
+              ],
+            ),
+          );
         },
-        icon: Icon(
-          networkService.isConnected ? Icons.link_off : Icons.link,
-          color: networkService.isConnected ? Colors.red : Colors.green,
-        ),
-        label: Text(
-          networkService.connectionState == ServiceConnectionState.connecting
-              ? "Connecting..."
-              : (networkService.isConnected ? "Disconnect" : "Connect"),
-          style: const TextStyle(color: Colors.white),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.grey[900],
-          disabledBackgroundColor: Colors.grey[800], // Greys out when tapped
-        ),
       ),
-    ],
-    ),
+    );
+  }
 
-    // Layout Switcher
-    ElevatedButton(
-      onPressed: () {
-        final notifier = context.read<LayoutNotifier>();
-        notifier.toggleLayout();  // still updates the UI
+  Widget _buildStatusBar(ConnectivityService network, double h) {
+    Color statusColor;
+    switch (network.connectionState) {
+      case ServiceConnectionState.connected:
+        statusColor = AppTheme.kA; // Green
+        break;
+      case ServiceConnectionState.connecting:
+      case ServiceConnectionState.scanning:
+      case ServiceConnectionState.reconnecting:
+        statusColor = AppTheme.kY; // Orange/Yellow
+        break;
+      default:
+        statusColor = AppTheme.kB; // Red (Disconnected)
+    }
 
-        // NOW also tell the server
-        final profileId = notifier.isXbox ? 'xbox360' : 'ds4';
-        networkService.sendCommand(
-          GamepadCommandFactory.setProfile(profileId),
-        );
-      },
-    style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[800]),
-    child: Text(
-    isXbox ? "Switch to PS" : "Switch to Xbox",
-    style: const TextStyle(color: Colors.white),
-    ),
-    ),
-    ],
-    ),
-    ),
+    // Minimized UI - Just a glowing dot
+    return Container(
+      width: h * 0.06,
+      height: h * 0.06,
+      decoration: BoxDecoration(
+        color: statusColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white24, width: 1.5),
+        boxShadow: [
+          BoxShadow(color: statusColor.withAlpha(128), blurRadius: 8, spreadRadius: 2),
         ],
       ),
     );

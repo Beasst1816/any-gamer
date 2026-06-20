@@ -190,4 +190,12 @@ extension GamepadCommandFactory on GamepadCommand {
       value: profileId == 'xbox360' ? 0 : 1,  // 0 = Xbox 360, 1 = DS4
     );
   }
+
+  /// High-precision analog axis update (-1.0 to 1.0).
+  static GamepadCommand axisUpdate(String id, double value) {
+    // TODO: implement UDP axis encoding
+    // Temporarily map to the existing 16-bit signed integer format so the compiler passes
+    final int clamped16Bit = (value * 32767).clamp(-32768, 32767).toInt();
+    return GamepadCommand(type: CommandType.axis, id: id, value: clamped16Bit);
+  }
 }

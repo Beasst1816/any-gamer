@@ -80,7 +80,7 @@ class LogEntry {
 /// ```
 class ConnectivityService extends ChangeNotifier {
   ConnectivityService({
-    String wifiHost = '10.42.224.212',
+    String wifiHost = '10.128.235.193',
     int wifiPort = 5000,
     String? bleDeviceName, // null → first device advertising kBleServiceUuid
   })  : _wifiHost = wifiHost,
@@ -179,6 +179,7 @@ class ConnectivityService extends ChangeNotifier {
   /// Route [command] to the correct channel send method.
   ///
   /// Silently dropped if not [isConnected]; logs a warning in debug mode.
+  // ── AFTER ───────────────────────────────────────────────────────────────────
   Future<void> sendCommand(GamepadCommand command) async {
     if (!isConnected) {
       _record('sendCommand called while not connected — dropped: $command',
@@ -188,7 +189,9 @@ class ConnectivityService extends ChangeNotifier {
     try {
       switch (_activeMode) {
         case ActiveMode.wifi:
-          await _wifiSend(command);
+          _wifiSend(command);         // ← synchronous now. If Socket.add() throws
+      //   (e.g. socket closed), the catch below
+      //   still catches it exactly as before.
         case ActiveMode.bluetooth:
           await _bleSend(command);
         case ActiveMode.usb:
@@ -245,14 +248,13 @@ class ConnectivityService extends ChangeNotifier {
 
   /// Sends [command] as newline-delimited JSON over the open TCP socket.
   ///
-  /// The newline delimiter allows the host to use a simple `readline()` reader.
-  Future<void> _wifiSend(GamepadCommand command) async {
-    final payload = command.toJsonFrame(); // already contains trailing '\n'
-    _tcpSocket!.add(utf8.encode(payload));
-    await _tcpSocket!.flush();
-    _record('WiFi TX: ${payload.trimRight()}');
+  void _wifiSend(GamepadCommand command) {
+    // Socket.add() hands bytes directly to the OS write buffer.
+    // TCP_NODELAY is already set in _wifiConnect, so the kernel flushes
+    // the buffer immediately without waiting to batch — flush() is redundant.
+    // Removing it eliminates the concurrent-Future flood that was dropping Wi-Fi.
+    _tcpSocket!.add(utf8.encode(command.toJsonFrame()));
   }
-
   Future<void> _wifiDisconnect() async {
     _wifiCancelReconnect();
     await _tcpRxSub?.cancel();
