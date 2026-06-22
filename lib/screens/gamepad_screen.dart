@@ -20,7 +20,6 @@ class GamepadScreen extends StatefulWidget {
 
 class _GamepadScreenState extends State<GamepadScreen>
     with WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();
@@ -35,12 +34,25 @@ class _GamepadScreenState extends State<GamepadScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('>>> AppLifecycle: $state');
     final network = context.read<ConnectivityService>();
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      network.disconnect(); // cancels reconnect timer, closes socket
-    } else if (state == AppLifecycleState.resumed) {
-      network.connect();   // re-establishes on return
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        network.resumeInput();
+        break;
+      case AppLifecycleState.inactive:
+        // App is visible but obscured by a system overlay (e.g., notification shade).
+        // Do NOT disconnect. Keep the connection fully alive.
+        break;
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        // App is backgrounded. Prevent rogue axis drift and maintain TCP alive state.
+        network.pauseInput();
+        break;
+      case AppLifecycleState.detached:
+        // App is being killed by the OS. Clean up the socket.
+        break;
     }
   }
 
@@ -59,10 +71,13 @@ class _GamepadScreenState extends State<GamepadScreen>
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1.0, 0.0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          position:
+              Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              ),
           child: child,
         );
       },
@@ -77,7 +92,10 @@ class _GamepadScreenState extends State<GamepadScreen>
     // SettingsNotifier.deadzone is 0–30 (UI units), convert to 0.0–0.30 float
     final deadzone = (settings.deadzone / 100.0).clamp(0.0, 0.3);
     // sensitivity is 0–100 UI → 0.5–2.0 multiplier
-    final sensitivity = (0.5 + (settings.sensitivity / 100.0) * 1.5).clamp(0.5, 2.0);
+    final sensitivity = (0.5 + (settings.sensitivity / 100.0) * 1.5).clamp(
+      0.5,
+      2.0,
+    );
 
     void handleSignal(String id, bool isPressed) {
       final cmd = isPressed
@@ -100,7 +118,10 @@ class _GamepadScreenState extends State<GamepadScreen>
           if (w == 0 || h == 0) return const SizedBox.shrink();
 
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: w * 0.04, vertical: h * 0.05),
+            padding: EdgeInsets.symmetric(
+              horizontal: w * 0.04,
+              vertical: h * 0.05,
+            ),
             child: Stack(
               children: [
                 // 1. Main HUD card
@@ -123,8 +144,20 @@ class _GamepadScreenState extends State<GamepadScreen>
                 // 2. Active Controller Layout
                 Positioned.fill(
                   child: isXbox
-                      ? XboxLayout(onSignal: handleSignal, onAxis: handleAxis, onOpenSettings: _openSettings, deadzoneNormalized: deadzone, sensitivityMultiplier: sensitivity)
-                      : PSLayout(onSignal: handleSignal, onAxis: handleAxis, onOpenSettings: _openSettings, deadzoneNormalized: deadzone, sensitivityMultiplier: sensitivity),
+                      ? XboxLayout(
+                          onSignal: handleSignal,
+                          onAxis: handleAxis,
+                          onOpenSettings: _openSettings,
+                          deadzoneNormalized: deadzone,
+                          sensitivityMultiplier: sensitivity,
+                        )
+                      : PSLayout(
+                          onSignal: handleSignal,
+                          onAxis: handleAxis,
+                          onOpenSettings: _openSettings,
+                          deadzoneNormalized: deadzone,
+                          sensitivityMultiplier: sensitivity,
+                        ),
                 ),
 
                 // 3. Status bar (Minimized to a tiny LED dot)
@@ -167,7 +200,11 @@ class _GamepadScreenState extends State<GamepadScreen>
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white24, width: 1.5),
         boxShadow: [
-          BoxShadow(color: statusColor.withAlpha(128), blurRadius: 8, spreadRadius: 2),
+          BoxShadow(
+            color: statusColor.withAlpha(128),
+            blurRadius: 8,
+            spreadRadius: 2,
+          ),
         ],
       ),
     );

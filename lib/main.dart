@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'models/layout_notifier.dart';
 import 'providers/theme_notifier.dart';
@@ -16,6 +19,10 @@ void main() async {
 
   // Load SharedPreferences before rendering any UI to prevent null pointer exceptions
   final prefs = await SharedPreferences.getInstance();
+
+  if (Platform.isAndroid) {
+    await [Permission.bluetoothScan, Permission.bluetoothConnect].request();
+  }
 
   // Lock the application to landscape mode natively
   await SystemChrome.setPreferredOrientations([
@@ -42,8 +49,20 @@ class GamepadApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
         ChangeNotifierProvider(create: (_) => LayoutNotifier(prefs)),
-        ChangeNotifierProvider(create: (_) => ConnectivityService()),
         ChangeNotifierProvider(create: (_) => SettingsNotifier(prefs)),
+        ChangeNotifierProxyProvider<SettingsNotifier, ConnectivityService>(
+          create: (context) {
+            final settings = context.read<SettingsNotifier>();
+            return ConnectivityService(
+              wifiHost: settings.wifiHost,
+              wifiPort: settings.wifiPort,
+            );
+          },
+          update: (_, settings, previous) {
+            previous!.updateWifiTarget(settings.wifiHost, settings.wifiPort);
+            return previous;
+          },
+        ),
       ],
       child: ScreenUtilInit(
         // Flipped to Landscape dimensions (Width: 844, Height: 390)

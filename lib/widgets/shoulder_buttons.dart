@@ -80,12 +80,12 @@ class _BaseShoulderButtonState extends State<_BaseShoulderButton> {
                   ),
                   boxShadow: pressed
                       ? [
-                    BoxShadow(
-                      color: accent.withAlpha(140),
-                      blurRadius: 14,
-                      spreadRadius: 2,
-                    )
-                  ]
+                          BoxShadow(
+                            color: accent.withAlpha(140),
+                            blurRadius: 14,
+                            spreadRadius: 2,
+                          ),
+                        ]
                       : [],
                 ),
                 alignment: Alignment.center,
@@ -111,12 +111,20 @@ class _BaseShoulderButtonState extends State<_BaseShoulderButton> {
 // -----------------------------------------------------------------------------
 
 class LTButton extends StatefulWidget {
+  final bool isXbox;
   final double width;
   final double height;
   final void Function(String id, bool isPressed) onSignal;
   final void Function(String id, double value)? onAxis;
 
-  const LTButton({super.key, required this.width, required this.height, required this.onSignal, this.onAxis});
+  const LTButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    this.onAxis,
+    required this.isXbox,
+  });
 
   @override
   State<LTButton> createState() => _LTButtonState();
@@ -199,13 +207,13 @@ class _LTButtonState extends State<LTButton> {
                             color: accent.withAlpha(140),
                             blurRadius: 14,
                             spreadRadius: 2,
-                          )
+                          ),
                         ]
                       : [],
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  'LT',
+                  widget.isXbox ? 'LT' : 'L2',
                   style: AppTheme.labelStyle(
                     widget.height * 0.35,
                     color: pressed ? accent : AppTheme.kTextSecondary,
@@ -220,14 +228,21 @@ class _LTButtonState extends State<LTButton> {
   }
 }
 
-
 class RTButton extends StatefulWidget {
+  final bool isXbox;
   final double width;
   final double height;
   final void Function(String id, bool isPressed) onSignal;
   final void Function(String id, double value)? onAxis;
 
-  const RTButton({super.key, required this.width, required this.height, required this.onSignal, this.onAxis});
+  const RTButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    this.onAxis,
+    required this.isXbox,
+  });
 
   @override
   State<RTButton> createState() => _RTButtonState();
@@ -310,13 +325,13 @@ class _RTButtonState extends State<RTButton> {
                             color: accent.withAlpha(140),
                             blurRadius: 14,
                             spreadRadius: 2,
-                          )
+                          ),
                         ]
                       : [],
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  'RT',
+                  widget.isXbox ? 'RT' : 'R2',
                   style: AppTheme.labelStyle(
                     widget.height * 0.35,
                     color: pressed ? accent : AppTheme.kTextSecondary,
@@ -335,38 +350,52 @@ class LBButton extends StatelessWidget {
   final double width;
   final double height;
   final void Function(String id, bool isPressed) onSignal;
+  final bool isXbox;
 
-  const LBButton({super.key, required this.width, required this.height, required this.onSignal});
+  const LBButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    required this.isXbox,
+  });
 
   @override
   Widget build(BuildContext context) {
     return _BaseShoulderButton(
-        key: key,
-        id: 'BTN_TL',
-        label: 'LB',
-        width: width,
-        height: height,
-        onSignal: onSignal
+      key: key,
+      id: 'BTN_TL',
+      label: isXbox ? 'LB' : 'L1',
+      width: width,
+      height: height,
+      onSignal: onSignal,
     );
   }
 }
 
 class RBButton extends StatelessWidget {
+  final bool isXbox;
   final double width;
   final double height;
   final void Function(String id, bool isPressed) onSignal;
 
-  const RBButton({super.key, required this.width, required this.height, required this.onSignal});
+  const RBButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    required this.isXbox,
+  });
 
   @override
   Widget build(BuildContext context) {
     return _BaseShoulderButton(
-        key: key,
-        id: 'BTN_TR',
-        label: 'RB',
-        width: width,
-        height: height,
-        onSignal: onSignal
+      key: key,
+      id: 'BTN_TR',
+      label: isXbox ? 'RB' : 'R1',
+      width: width,
+      height: height,
+      onSignal: onSignal,
     );
   }
 }

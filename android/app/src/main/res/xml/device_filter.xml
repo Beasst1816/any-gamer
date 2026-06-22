@@ -1,33 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <!-- Generic USB serial device filtering for usb_serial plugin -->
-    <!-- This allows detection of common USB-to-serial adapters and microcontrollers -->
-
-    <!-- Arduino (VID: 0x2341) -->
-    <usb-device vendor-id="0x2341" product-id="0x0043" />
-    <usb-device vendor-id="0x2341" product-id="0x0001" />
-
-    <!-- CH340 (VID: 0x1A86) -->
-    <usb-device vendor-id="0x1a86" product-id="0x7523" />
-
-    <!-- FTDI (VID: 0x0403) -->
-    <usb-device vendor-id="0x0403" product-id="0x6001" />
-    <usb-device vendor-id="0x0403" product-id="0x6010" />
-    <usb-device vendor-id="0x0403" product-id="0x6011" />
-    <usb-device vendor-id="0x0403" product-id="0x6014" />
-    <usb-device vendor-id="0x0403" product-id="0x6015" />
-
-    <!-- Silicon Labs CP210x (VID: 0x10C4) -->
-    <usb-device vendor-id="0x10c4" product-id="0xea60" />
-    <usb-device vendor-id="0x10c4" product-id="0xea70" />
-
-    <!-- Prolific PL2303 (VID: 0x067B) -->
-    <usb-device vendor-id="0x067b" product-id="0x2303" />
-
-    <!-- Add custom VID/PID pairs for your specific device:
-         Replace 0xXXXX with your actual vendor ID and product ID
-         You can find these by running 'adb logcat' while connecting your device
-    <usb-device vendor-id="0xXXXX" product-id="0xXXXX" />
-    -->
+  <!-- Arduino Uno/Mega (VID:0x2341=9025) -->
+  <usb-device vendor-id="9025" product-id="67" />
+  <usb-device vendor-id="9025" product-id="1" />
+  <!-- CH340 (VID:0x1A86=6790) -->
+  <usb-device vendor-id="6790" product-id="29987" />
+  <!-- FTDI (VID:0x0403=1027) -->
+  <usb-device vendor-id="1027" product-id="24577" />
+  <usb-device vendor-id="1027" product-id="24592" />
+  <usb-device vendor-id="1027" product-id="24593" />
+  <usb-device vendor-id="1027" product-id="24596" />
+  <usb-device vendor-id="1027" product-id="24597" />
+  <!-- CP210x (VID:0x10C4=4292) -->
+  <usb-device vendor-id="4292" product-id="60000" />
+  <usb-device vendor-id="4292" product-id="60016" />
+  <!-- PL2303 (VID:0x067B=1659) -->
+  <usb-device vendor-id="1659" product-id="8963" />
 </resources>
-

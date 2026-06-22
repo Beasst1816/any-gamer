@@ -49,7 +49,9 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
             height: double.infinity,
             decoration: BoxDecoration(
               color: AppTheme.kHudSurface.withAlpha(240),
-              border: const Border(left: BorderSide(color: AppTheme.kHudBorder)),
+              border: const Border(
+                left: BorderSide(color: AppTheme.kHudBorder),
+              ),
             ),
             child: ClipRRect(
               child: BackdropFilter(
@@ -61,60 +63,124 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                       const Divider(color: AppTheme.kHudBorder, height: 1),
                       Expanded(
                         child: ListView(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
                           children: [
                             _buildSectionTitle('INPUT', accent),
                             _buildSliderRow(
-                              'SENSITIVITY', _localSensitivity!, 0, 100, accent,
+                              'SENSITIVITY',
+                              _localSensitivity!,
+                              0,
+                              100,
+                              accent,
                               onLocalChange: (v) => _localSensitivity = v,
                               onSaveToDisk: (v) => settings.setSensitivity(v),
                             ),
                             _buildSliderRow(
-                              'DEADZONE', _localDeadzone!, 0, 30, accent,
+                              'DEADZONE',
+                              _localDeadzone!,
+                              0,
+                              30,
+                              accent,
                               onLocalChange: (v) => _localDeadzone = v,
                               onSaveToDisk: (v) => settings.setDeadzone(v),
                             ),
-                            _buildSwitchRow('VIBRATION', settings.vibration, accent, (v) => settings.setVibration(v)),
+                            _buildSwitchRow(
+                              'VIBRATION',
+                              settings.vibration,
+                              accent,
+                              (v) => settings.setVibration(v),
+                            ),
                             const SizedBox(height: 24),
 
                             _buildSectionTitle('LAYOUT', accent),
                             _buildSegmentedControl<bool>(
                               value: layout.isXbox,
-                              options: const {true: 'XBOX', false: 'PLAYSTATION'},
+                              options: const {
+                                true: 'XBOX',
+                                false: 'PLAYSTATION',
+                              },
                               accent: accent,
                               onChanged: (v) {
                                 if (v != layout.isXbox) {
                                   layout.toggleLayout();
                                   // isXbox has already flipped, so read the new value
-                                  final newProfile = layout.isXbox ? 'xbox360' : 'ds4';
-                                  context.read<ConnectivityService>()
-                                      .sendCommand(GamepadCommandFactory.setProfile(newProfile));
+                                  final newProfile = layout.isXbox
+                                      ? 'xbox360'
+                                      : 'ds4';
+                                  context
+                                      .read<ConnectivityService>()
+                                      .sendCommand(
+                                        GamepadCommandFactory.setProfile(
+                                          newProfile,
+                                        ),
+                                      );
                                 }
                               },
                             ),
                             const SizedBox(height: 16),
                             _buildSliderRow(
-                              'BUTTON SIZE', _localUserScale!, 0.7, 1.4, accent,
+                              'BUTTON SIZE',
+                              _localUserScale!,
+                              0.7,
+                              1.4,
+                              accent,
                               isPercentage: true,
                               onLocalChange: (v) => _localUserScale = v,
                               onSaveToDisk: (v) => settings.setUserScale(v),
                             ),
                             const SizedBox(height: 16),
                             _buildActionButton('EDIT LAYOUT', accent, () {
-                              Navigator.of(context).pop(); // Close settings panel
+                              Navigator.of(
+                                context,
+                              ).pop(); // Close settings panel
                               showGeneralDialog(
                                 context: context,
                                 barrierDismissible: true,
                                 barrierLabel: 'LayoutEditorDismiss',
                                 barrierColor: Colors.black87,
-                                pageBuilder: (context, animation, secondaryAnimation) {
-                                  return const LayoutEditorOverlay();
-                                },
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) {
+                                      return const LayoutEditorOverlay();
+                                    },
                               );
                             }),
                             const SizedBox(height: 24),
 
                             _buildSectionTitle('CONNECTION', accent),
+                            if (network.activeMode == ActiveMode.wifi) ...[
+                              // IP and port are resolved automatically via mDNS.
+                              // Manual override is available through advanced settings (future feature).
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.wifi_find,
+                                      size: 14,
+                                      color: accent,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        network.isConnected
+                                            ? 'Connected to ${context.read<SettingsNotifier>().wifiHost}'
+                                            : 'Auto-discovering on local network…',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.kTextPrimary
+                                              .withAlpha(180),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                             _buildSegmentedControl<ActiveMode>(
                               value: network.activeMode,
                               options: const {
@@ -130,7 +196,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                             _buildActionButton(
                               network.isConnected ? 'DISCONNECT' : 'CONNECT',
                               network.isConnected ? Colors.redAccent : accent,
-                                  () async {
+                              () async {
                                 if (network.isConnected) {
                                   await network.disconnect();
                                 } else {
@@ -139,12 +205,15 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                               },
                             ),
 
-// Connection status text
+                            // Connection status text
                             const SizedBox(height: 8),
                             Text(
                               network.statusMessage,
                               textAlign: TextAlign.center,
-                              style: AppTheme.labelStyle(11, color: AppTheme.kTextSecondary),
+                              style: AppTheme.labelStyle(
+                                11,
+                                color: AppTheme.kTextSecondary,
+                              ),
                             ),
                             const SizedBox(height: 24),
 
@@ -166,7 +235,11 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, SettingsNotifier settings, Color accent) {
+  Widget _buildHeader(
+    BuildContext context,
+    SettingsNotifier settings,
+    Color accent,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -184,7 +257,10 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                 _localUserScale = 1.0;
               });
             },
-            child: Text('RESET', style: AppTheme.labelStyle(14, color: AppTheme.kTextSecondary)),
+            child: Text(
+              'RESET',
+              style: AppTheme.labelStyle(14, color: AppTheme.kTextSecondary),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.close, color: AppTheme.kTextSecondary),
@@ -198,12 +274,19 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
   Widget _buildSectionTitle(String title, Color accent) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Text(title, style: AppTheme.labelStyle(14, color: AppTheme.kTextSecondary)),
+      child: Text(
+        title,
+        style: AppTheme.labelStyle(14, color: AppTheme.kTextSecondary),
+      ),
     );
   }
 
-  // 🛠️ FIX: Converted fixed SizedBoxes to Expanded Flex to prevent horizontal overflow
-  Widget _buildSliderRow(String label, double value, double min, double max, Color accent, {
+  Widget _buildSliderRow(
+    String label,
+    double value,
+    double min,
+    double max,
+    Color accent, {
     bool isPercentage = false,
     required Function(double) onLocalChange,
     required Function(double) onSaveToDisk,
@@ -231,13 +314,11 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                 min: min,
                 max: max,
                 onChanged: (val) {
-                  // 🛠️ FIX: Calls setState immediately so the thumb glides seamlessly
                   setState(() {
                     onLocalChange(val);
                   });
                 },
                 onChangeEnd: (val) {
-                  // 🛠️ FIX: Executes the heavy disk I/O only when you release the thumb
                   onSaveToDisk(val);
                 },
               ),
@@ -246,7 +327,9 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
           Expanded(
             flex: 2,
             child: Text(
-              isPercentage ? '${(value * 100).toInt()}%' : value.toInt().toString(),
+              isPercentage
+                  ? '${(value * 100).toInt()}%'
+                  : value.toInt().toString(),
               textAlign: TextAlign.right,
               style: AppTheme.labelStyle(14, color: accent),
             ),
@@ -256,7 +339,12 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
     );
   }
 
-  Widget _buildSwitchRow(String label, bool value, Color accent, Function(bool) onChanged) {
+  Widget _buildSwitchRow(
+    String label,
+    bool value,
+    Color accent,
+    Function(bool) onChanged,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -274,7 +362,12 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
     );
   }
 
-  Widget _buildSegmentedControl<T>({required T value, required Map<T, String> options, required Color accent, required Function(T) onChanged}) {
+  Widget _buildSegmentedControl<T>({
+    required T value,
+    required Map<T, String> options,
+    required Color accent,
+    required Function(T) onChanged,
+  }) {
     return Container(
       height: 40,
       decoration: BoxDecoration(
@@ -297,7 +390,10 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                 alignment: Alignment.center,
                 child: Text(
                   entry.value,
-                  style: AppTheme.labelStyle(14, color: isSelected ? accent : AppTheme.kTextSecondary),
+                  style: AppTheme.labelStyle(
+                    14,
+                    color: isSelected ? accent : AppTheme.kTextSecondary,
+                  ),
                 ),
               ),
             ),
@@ -324,7 +420,6 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
     );
   }
 
-  // 🛠️ FIX: Wrapped in a 'Wrap' instead of 'Row' just in case you add more colors later to prevent overflow
   Widget _buildColorPicker(ThemeNotifier theme) {
     return Wrap(
       spacing: 12,
@@ -340,8 +435,18 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
-              border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
-              boxShadow: isSelected ? [BoxShadow(color: color.withAlpha(150), blurRadius: 12, spreadRadius: 2)] : [],
+              border: isSelected
+                  ? Border.all(color: Colors.white, width: 3)
+                  : null,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: color.withAlpha(150),
+                        blurRadius: 12,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : [],
             ),
           ),
         );

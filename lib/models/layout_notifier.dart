@@ -25,9 +25,16 @@ class LayoutNotifier extends ChangeNotifier {
   late List<String> _leftZone;
   late List<String> _rightZone;
   final Map<String, bool> _visibility = {
-    'dpad': true, 'l_stick': true, 'buttons': true, 'r_stick': true,
-    'lt': true, 'lb': true, 'rt': true, 'rb': true,
-    'select': true, 'start': true
+    'dpad': true,
+    'l_stick': true,
+    'buttons': true,
+    'r_stick': true,
+    'lt': true,
+    'lb': true,
+    'rt': true,
+    'rb': true,
+    'select': true,
+    'start': true,
   };
 
   bool get isXbox => _isXbox;
@@ -37,7 +44,17 @@ class LayoutNotifier extends ChangeNotifier {
 
   void toggleLayout() {
     _isXbox = !_isXbox;
+    // Reset zones to the canonical defaults for the new layout type
+    if (_isXbox) {
+      _leftZone = ['l_stick', 'dpad'];
+      _rightZone = ['buttons', 'r_stick'];
+    } else {
+      _leftZone = ['dpad', 'l_stick']; // PS: D-pad top-left, stick bottom-left
+      _rightZone = ['buttons', 'r_stick'];
+    }
     _prefs.setBool('isXbox', _isXbox);
+    _prefs.setStringList('leftZone', _leftZone);
+    _prefs.setStringList('rightZone', _rightZone);
     notifyListeners();
   }
 
@@ -60,8 +77,8 @@ class LayoutNotifier extends ChangeNotifier {
   void toggleVisibility(String key) {
     _visibility[key] = !(_visibility[key] ?? true);
     _prefs.setStringList(
-        'visibility',
-        _visibility.entries.map((e) => '${e.key}:${e.value}').toList()
+      'visibility',
+      _visibility.entries.map((e) => '${e.key}:${e.value}').toList(),
     );
     notifyListeners();
   }

@@ -37,10 +37,18 @@ class PSLayout extends StatelessWidget {
         final double userScale = context.watch<SettingsNotifier>().userScale;
         final layout = context.watch<LayoutNotifier>();
 
-        final leftTopKey = layout.leftZone.isNotEmpty ? layout.leftZone[0] : 'dpad';
-        final leftBottomKey = layout.leftZone.length > 1 ? layout.leftZone[1] : 'l_stick';
-        final rightTopKey = layout.rightZone.isNotEmpty ? layout.rightZone[0] : 'buttons';
-        final rightBottomKey = layout.rightZone.length > 1 ? layout.rightZone[1] : 'r_stick';
+        final leftTopKey = layout.leftZone.isNotEmpty
+            ? layout.leftZone[0]
+            : 'dpad';
+        final leftBottomKey = layout.leftZone.length > 1
+            ? layout.leftZone[1]
+            : 'l_stick';
+        final rightTopKey = layout.rightZone.isNotEmpty
+            ? layout.rightZone[0]
+            : 'buttons';
+        final rightBottomKey = layout.rightZone.length > 1
+            ? layout.rightZone[1]
+            : 'r_stick';
 
         final centerWidth = w * 0.30;
         final centerHeight = h * 0.18 * userScale;
@@ -58,13 +66,41 @@ class PSLayout extends StatelessWidget {
 
           switch (key) {
             case 'l_stick':
-                          return SizedBox(width: stickSize, child: ThumbstickWidget(axisX: 'LS_X', axisY: 'LS_Y', l3ButtonId: 'BTN_THUMBL', label: 'L3', onAxis: onAxis, onButton: onSignal, deadzoneNormalized: deadzoneNormalized, sensitivityMultiplier: sensitivityMultiplier));
+              return SizedBox(
+                width: stickSize,
+                child: ThumbstickWidget(
+                  axisX: 'LS_X',
+                  axisY: 'LS_Y',
+                  l3ButtonId: 'BTN_THUMBL',
+                  label: 'L3',
+                  onAxis: onAxis,
+                  onButton: onSignal,
+                  deadzoneNormalized: deadzoneNormalized,
+                  sensitivityMultiplier: sensitivityMultiplier,
+                ),
+              );
             case 'r_stick':
-                          return SizedBox(width: stickSize, child: ThumbstickWidget(axisX: 'RS_X', axisY: 'RS_Y', l3ButtonId: 'BTN_THUMBR', label: 'R3', onAxis: onAxis, onButton: onSignal, deadzoneNormalized: deadzoneNormalized, sensitivityMultiplier: sensitivityMultiplier));
+              return SizedBox(
+                width: stickSize,
+                child: ThumbstickWidget(
+                  axisX: 'RS_X',
+                  axisY: 'RS_Y',
+                  l3ButtonId: 'BTN_THUMBR',
+                  label: 'R3',
+                  onAxis: onAxis,
+                  onButton: onSignal,
+                  deadzoneNormalized: deadzoneNormalized,
+                  sensitivityMultiplier: sensitivityMultiplier,
+                ),
+              );
             case 'dpad':
               return DPadWidget(size: dpadSize, onSignal: onSignal);
             case 'buttons':
-              return FaceButtonCluster(isXbox: false, size: faceSize, onSignal: onSignal);
+              return FaceButtonCluster(
+                isXbox: false,
+                size: faceSize,
+                onSignal: onSignal,
+              );
             default:
               return const SizedBox.shrink();
           }
@@ -80,9 +116,23 @@ class PSLayout extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (layout.isVisible('lt')) LTButton(width: triggerW, height: triggerH, onSignal: onSignal, onAxis: onAxis),
-                    if (layout.isVisible('lt') && layout.isVisible('lb')) SizedBox(width: w * 0.02),
-                    if (layout.isVisible('lb')) LBButton(width: bumperW, height: bumperH, onSignal: onSignal),
+                    if (layout.isVisible('lt'))
+                      LTButton(
+                        width: triggerW,
+                        height: triggerH,
+                        onSignal: onSignal,
+                        onAxis: onAxis,
+                        isXbox: false,
+                      ),
+                    if (layout.isVisible('lt') && layout.isVisible('lb'))
+                      SizedBox(width: w * 0.02),
+                    if (layout.isVisible('lb'))
+                      LBButton(
+                        width: bumperW,
+                        height: bumperH,
+                        onSignal: onSignal,
+                        isXbox: false,
+                      ),
                   ],
                 ),
               ),
@@ -93,9 +143,23 @@ class PSLayout extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (layout.isVisible('rb')) RBButton(width: bumperW, height: bumperH, onSignal: onSignal),
-                    if (layout.isVisible('rt') && layout.isVisible('rb')) SizedBox(width: w * 0.02),
-                    if (layout.isVisible('rt')) RTButton(width: triggerW, height: triggerH, onSignal: onSignal, onAxis: onAxis),
+                    if (layout.isVisible('rb'))
+                      RBButton(
+                        width: bumperW,
+                        height: bumperH,
+                        onSignal: onSignal,
+                        isXbox: false,
+                      ),
+                    if (layout.isVisible('rt') && layout.isVisible('rb'))
+                      SizedBox(width: w * 0.02),
+                    if (layout.isVisible('rt'))
+                      RTButton(
+                        width: triggerW,
+                        height: triggerH,
+                        onSignal: onSignal,
+                        onAxis: onAxis,
+                        isXbox: false,
+                      ),
                   ],
                 ),
               ),

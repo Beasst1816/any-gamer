@@ -17,6 +17,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:multicast_dns/multicast_dns.dart';
 import 'package:usb_serial/usb_serial.dart';
 
 import 'gamepad_command.dart'; // GamepadCommand, CommandType
@@ -31,7 +32,7 @@ enum ActiveMode { wifi, bluetooth, usb }
 /// Fine-grained FSM state exposed to the UI for badge / icon rendering.
 enum ServiceConnectionState {
   disconnected,
-  scanning,    // BLE scan in progress
+  scanning, // BLE scan in progress
   connecting,
   connected,
   reconnecting,
@@ -62,30 +63,26 @@ class LogEntry {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Singleton-friendly ChangeNotifier that manages all three transport channels.
-///
-/// ### Typical usage
-/// ```dart
-/// // 1. Register with your DI/provider setup:
-/// MultiProvider(providers: [
-///   ChangeNotifierProvider(create: (_) => ConnectivityService()),
-/// ])
-///
-/// // 2. Switch mode and connect:
-/// final svc = context.read<ConnectivityService>();
-/// await svc.setMode(ActiveMode.bluetooth);
-/// await svc.connect();
-///
-/// // 3. Send commands from any button widget:
-/// await svc.sendCommand(GamepadCommandFactory.buttonDown('A'));
-/// ```
 class ConnectivityService extends ChangeNotifier {
+  bool _isInputPaused = false;
+  bool _userRequestedDisconnect = false;
+  Timer? _heartbeatTimer;
+
   ConnectivityService({
-    String wifiHost = '10.128.235.193',
+    String wifiHost = '192.168.1.100',
     int wifiPort = 5000,
-    String? bleDeviceName, // null → first device advertising kBleServiceUuid
-  })  : _wifiHost = wifiHost,
-        _wifiPort = wifiPort,
-        _bleTargetName = bleDeviceName;
+    String? bleDeviceName,
+  }) : _wifiHost = wifiHost,
+       _wifiPort = wifiPort,
+       _bleTargetName = bleDeviceName {
+    _initUsbEventListener();
+  }
+
+  /// Start listening for USB hot-plug events immediately at service creation,
+  /// so attach events are received even before connect() is called.
+  void _initUsbEventListener() {
+    _usbEventSub = UsbSerial.usbEventStream?.listen(_onUsbEvent);
+  }
 
   // ══════════════════════════════════════════════════════════════════════════
   //  Public state (consumed by UI via context.watch / Consumer)
@@ -119,14 +116,21 @@ class ConnectivityService extends ChangeNotifier {
   // ══════════════════════════════════════════════════════════════════════════
 
   /// Switch the active transport channel.
-  ///
-  /// Tears down any live connection before switching; safe to await.
   Future<void> setMode(ActiveMode mode) async {
     if (mode == _activeMode) return;
     _record('Mode change: ${_activeMode.name} → ${mode.name}');
     await disconnect();
     _activeMode = mode;
     notifyListeners();
+  }
+
+  void updateWifiTarget(String host, int port) {
+    if (_wifiHost == host && _wifiPort == port) return;
+    _wifiHost = host;
+    _wifiPort = port;
+    if (_activeMode == ActiveMode.wifi && isConnected) {
+      disconnect().then((_) => connect());
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -139,8 +143,11 @@ class ConnectivityService extends ChangeNotifier {
         _connState == ServiceConnectionState.scanning) {
       return;
     }
-    _setState(ServiceConnectionState.connecting,
-        'Connecting via ${_activeMode.name}…');
+    _userRequestedDisconnect = false;
+    _setState(
+      ServiceConnectionState.connecting,
+      'Connecting via ${_activeMode.name}…',
+    );
 
     try {
       switch (_activeMode) {
@@ -151,8 +158,10 @@ class ConnectivityService extends ChangeNotifier {
         case ActiveMode.usb:
           await _usbConnect();
       }
-      _setState(ServiceConnectionState.connected,
-          'Connected · ${_activeMode.name.toUpperCase()}');
+      _setState(
+        ServiceConnectionState.connected,
+        'Connected · ${_activeMode.name.toUpperCase()}',
+      );
     } on TimeoutException catch (e) {
       _setState(ServiceConnectionState.error, 'Timeout: $e');
       _record('Timeout during connect', level: LogLevel.error);
@@ -164,6 +173,9 @@ class ConnectivityService extends ChangeNotifier {
 
   /// Gracefully close the active channel.
   Future<void> disconnect() async {
+    _userRequestedDisconnect = true;
+    _heartbeatTimer?.cancel();
+    _isInputPaused = false;
     _wifiCancelReconnect();
     switch (_activeMode) {
       case ActiveMode.wifi:
@@ -177,21 +189,19 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   /// Route [command] to the correct channel send method.
-  ///
-  /// Silently dropped if not [isConnected]; logs a warning in debug mode.
-  // ── AFTER ───────────────────────────────────────────────────────────────────
   Future<void> sendCommand(GamepadCommand command) async {
+    if (_isInputPaused) return;
     if (!isConnected) {
-      _record('sendCommand called while not connected — dropped: $command',
-          level: LogLevel.warning);
+      _record(
+        'sendCommand called while not connected — dropped: $command',
+        level: LogLevel.warning,
+      );
       return;
     }
     try {
       switch (_activeMode) {
         case ActiveMode.wifi:
-          _wifiSend(command);         // ← synchronous now. If Socket.add() throws
-      //   (e.g. socket closed), the catch below
-      //   still catches it exactly as before.
+          _wifiSend(command);
         case ActiveMode.bluetooth:
           await _bleSend(command);
         case ActiveMode.usb:
@@ -203,32 +213,122 @@ class ConnectivityService extends ChangeNotifier {
     }
   }
 
+  void pauseInput() {
+    if (connectionState != ServiceConnectionState.connected) return;
+
+    _isInputPaused = true;
+    _heartbeatTimer?.cancel();
+
+    // Send a keepalive packet every 5 seconds to prevent TCP idle timeouts.
+    // Use socket.add(utf8.encode()) — NOT socket.write() — to send raw UTF-8 bytes.
+    // socket.write() uses latin-1 encoding and produces malformed packets.
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_tcpSocket != null) {
+        _tcpSocket!.add(
+          utf8.encode('{"type":"system","id":"PING","value":0}\n'),
+        );
+      }
+    });
+  }
+
+  void resumeInput() {
+    _isInputPaused = false;
+    _heartbeatTimer?.cancel();
+
+    if (!isConnected && _activeMode == ActiveMode.wifi) {
+      _wifiRetryCount = 0;
+      connect();
+    }
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   //  ──  Wi-Fi / TCP channel  ────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
   // ── Configuration ──────────────────────────────────────────────────────────
 
-  final String _wifiHost;
-  final int _wifiPort;
+  String _wifiHost;
+  int _wifiPort;
 
-  static const Duration _wifiConnectTimeout  = Duration(seconds: 5);
-  static const Duration _wifiReconnectDelay  = Duration(seconds: 3);
-  static const int      _wifiMaxRetries      = 5;
+  static const Duration _wifiConnectTimeout = Duration(seconds: 5);
+  static const Duration _wifiReconnectDelay = Duration(seconds: 3);
+  static const int _wifiMaxRetries = 5;
+
+  /// mDNS service type advertised by the C# ViGEm server.
+  static const String _mdnsServiceType = '_ctrlforge._tcp';
+
+  /// How long to wait for an mDNS response before falling back to the
+  /// stored host/port.
+  static const Duration _mdnsScanTimeout = Duration(seconds: 4);
 
   // ── State ──────────────────────────────────────────────────────────────────
 
   Socket? _tcpSocket;
   StreamSubscription<Uint8List>? _tcpRxSub;
-  Timer?  _wifiReconnectTimer;
-  int     _wifiRetryCount = 0;
+  Timer? _wifiReconnectTimer;
+  int _wifiRetryCount = 0;
+  bool _wifiReconnectPending = false;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-  /// Opens a TCP socket to [_wifiHost]:[_wifiPort].
+  /// Attempt mDNS discovery of the C# server on the local network.
   ///
-  /// Enables `TCP_NODELAY` to minimise latency for small command frames.
+  /// Scans for [_mdnsServiceType] records for up to [_mdnsScanTimeout].
+  /// On success, updates [_wifiHost] and [_wifiPort] in-place.
+  /// On failure (no record found, network error, timeout), leaves the
+  /// existing host/port unchanged so the user's manual entry acts as fallback.
+  Future<void> _tryMdnsDiscovery() async {
+    _record('mDNS: scanning for $_mdnsServiceType…');
+    final client = MDnsClient();
+    try {
+      await client.start();
+
+      // Resolve PTR → SRV → A chain with a hard timeout.
+      await for (final PtrResourceRecord ptr
+          in client
+              .lookup<PtrResourceRecord>(
+                ResourceRecordQuery.serverPointer(_mdnsServiceType),
+              )
+              .timeout(_mdnsScanTimeout, onTimeout: (_) {})) {
+        // Resolve SRV for port
+        await for (final SrvResourceRecord srv
+            in client
+                .lookup<SrvResourceRecord>(
+                  ResourceRecordQuery.service(ptr.domainName),
+                )
+                .timeout(const Duration(seconds: 2), onTimeout: (_) {})) {
+          // Resolve A for IP
+          await for (final IPAddressResourceRecord ip
+              in client
+                  .lookup<IPAddressResourceRecord>(
+                    ResourceRecordQuery.addressIPv4(srv.target),
+                  )
+                  .timeout(const Duration(seconds: 2), onTimeout: (_) {})) {
+            _wifiHost = ip.address.address;
+            _wifiPort = srv.port;
+            _record('mDNS: resolved → $_wifiHost:$_wifiPort');
+            return; // Found — stop scanning
+          }
+        }
+      }
+      _record(
+        'mDNS: no record found — using saved host $_wifiHost:$_wifiPort',
+        level: LogLevel.warning,
+      );
+    } catch (e) {
+      _record(
+        'mDNS: discovery error ($e) — using saved host',
+        level: LogLevel.warning,
+      );
+    } finally {
+      client.stop();
+    }
+  }
+
   Future<void> _wifiConnect() async {
+    // Attempt auto-discovery first; falls back to saved host if not found.
+    await _tryMdnsDiscovery();
+
     _record('TCP → $_wifiHost:$_wifiPort');
     _tcpSocket = await Socket.connect(
       _wifiHost,
@@ -239,41 +339,40 @@ class ConnectivityService extends ChangeNotifier {
     _tcpRxSub = _tcpSocket!.listen(
       _onWifiData,
       onError: _onWifiError,
-      onDone:  _onWifiDone,
+      onDone: _onWifiDone,
       cancelOnError: false,
     );
     _wifiRetryCount = 0;
     _record('TCP socket established ($_wifiHost:$_wifiPort)');
   }
 
-  /// Sends [command] as newline-delimited JSON over the open TCP socket.
-  ///
   void _wifiSend(GamepadCommand command) {
-    // Socket.add() hands bytes directly to the OS write buffer.
-    // TCP_NODELAY is already set in _wifiConnect, so the kernel flushes
-    // the buffer immediately without waiting to batch — flush() is redundant.
-    // Removing it eliminates the concurrent-Future flood that was dropping Wi-Fi.
-    _tcpSocket!.add(utf8.encode(command.toJsonFrame()));
+    final socket = _tcpSocket;
+    if (socket == null) {
+      _record('Wi-Fi send: socket null — dropped', level: LogLevel.warning);
+      return;
+    }
+    socket.add(utf8.encode(command.toJsonFrame()));
   }
+
   Future<void> _wifiDisconnect() async {
     _wifiCancelReconnect();
     await _tcpRxSub?.cancel();
     _tcpRxSub = null;
     try {
       await _tcpSocket?.close();
-    } catch (_) {/* already closed */}
+    } catch (_) {
+      /* already closed */
+    }
     _tcpSocket = null;
     _record('TCP socket closed');
   }
 
   // ── Inbound data ───────────────────────────────────────────────────────────
 
-  /// Handle bytes arriving from the TCP host (ACKs, haptic triggers, etc.).
   void _onWifiData(Uint8List data) {
     final text = utf8.decode(data, allowMalformed: true).trim();
     _record('WiFi RX: $text');
-    // TODO: parse host → controller messages here (e.g. rumble requests).
-    // Each newline-delimited JSON object can be decoded with jsonDecode(text).
   }
 
   // ── Error / reconnect handling ─────────────────────────────────────────────
@@ -285,24 +384,42 @@ class ConnectivityService extends ChangeNotifier {
 
   void _onWifiDone() {
     _record('TCP remote closed connection', level: LogLevel.warning);
-    _setState(ServiceConnectionState.reconnecting, 'Wi-Fi link lost — retrying…');
+    _setState(
+      ServiceConnectionState.reconnecting,
+      'Wi-Fi link lost — retrying…',
+    );
     _scheduleWifiReconnect();
   }
 
   void _scheduleWifiReconnect() {
+    // Guard: if a reconnect timer is already pending, ignore the duplicate call.
+    // This prevents _onWifiError + _onWifiDone both firing for a single RST
+    // from scheduling two concurrent reconnect timers.
+    if (_wifiReconnectPending) return;
+
     if (_wifiRetryCount >= _wifiMaxRetries) {
-      _setState(ServiceConnectionState.error,
-          'Wi-Fi: max retries ($_wifiMaxRetries) reached');
+      _setState(
+        ServiceConnectionState.error,
+        'Wi-Fi: max retries ($_wifiMaxRetries) reached',
+      );
       return;
     }
+
+    _wifiReconnectPending = true;
     _wifiRetryCount++;
-    final delay = _wifiReconnectDelay * _wifiRetryCount; // linear back-off
-    _record('Wi-Fi reconnect in ${delay.inSeconds}s '
-        '(attempt $_wifiRetryCount/$_wifiMaxRetries)');
-    _wifiReconnectTimer = Timer(delay, connect);
+    final delay = _wifiReconnectDelay * _wifiRetryCount;
+    _record(
+      'Wi-Fi reconnect in ${delay.inSeconds}s '
+      '(attempt $_wifiRetryCount/$_wifiMaxRetries)',
+    );
+    _wifiReconnectTimer = Timer(delay, () {
+      _wifiReconnectPending = false;
+      connect();
+    });
   }
 
   void _wifiCancelReconnect() {
+    _wifiReconnectPending = false;
     _wifiReconnectTimer?.cancel();
     _wifiReconnectTimer = null;
   }
@@ -313,15 +430,9 @@ class ConnectivityService extends ChangeNotifier {
 
   // ── GATT profile UUIDs (override to match your firmware) ──────────────────
 
-  /// Primary GATT service that hosts the gamepad characteristic.
-  static const String kBleServiceUuid =
-      '12345678-1234-1234-1234-1234567890ab';
-
-  /// Writable characteristic that accepts [GamepadCommand.toBleBytes()] frames.
+  static const String kBleServiceUuid = '12345678-1234-1234-1234-1234567890ab';
   static const String kBleCommandCharUuid =
       'abcdef01-1234-1234-1234-abcdefabcdef';
-
-  /// Optional: subscribe to this notify characteristic for ACKs / rumble events.
   static const String kBleNotifyCharUuid =
       'abcdef02-1234-1234-1234-abcdefabcdef';
 
@@ -329,18 +440,18 @@ class ConnectivityService extends ChangeNotifier {
 
   final String? _bleTargetName;
 
-  static const Duration _bleScanTimeout    = Duration(seconds: 10);
+  static const Duration _bleScanTimeout = Duration(seconds: 10);
   static const Duration _bleConnectTimeout = Duration(seconds: 15);
 
   // ── State ──────────────────────────────────────────────────────────────────
 
-  BluetoothDevice?         _bleDevice;
+  BluetoothDevice? _bleDevice;
   BluetoothCharacteristic? _bleCmdChar;
   BluetoothCharacteristic? _bleNotifyChar;
 
   StreamSubscription<BluetoothConnectionState>? _bleConnStateSub;
-  StreamSubscription<List<ScanResult>>?         _bleScanSub;
-  StreamSubscription<List<int>>?                _bleNotifySub;
+  StreamSubscription<List<ScanResult>>? _bleScanSub;
+  StreamSubscription<List<int>>? _bleNotifySub;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -357,8 +468,8 @@ class ConnectivityService extends ChangeNotifier {
 
     _bleScanSub = FlutterBluePlus.scanResults.listen((results) {
       for (final r in results) {
-        final nameMatch = _bleTargetName == null ||
-            r.device.platformName == _bleTargetName;
+        final nameMatch =
+            _bleTargetName == null || r.device.platformName == _bleTargetName;
         if (nameMatch && !completer.isCompleted) {
           FlutterBluePlus.stopScan();
           completer.complete(r.device);
@@ -369,25 +480,24 @@ class ConnectivityService extends ChangeNotifier {
 
     _bleDevice = await completer.future.timeout(
       _bleScanTimeout,
-      onTimeout: () => throw TimeoutException('BLE: no device found in scan window'),
+      onTimeout: () =>
+          throw TimeoutException('BLE: no device found in scan window'),
     );
 
     // ── 2. Connect to the peripheral ────────────────────────────────────────
     _record('BLE: connecting to ${_bleDevice!.platformName}…');
-    await _bleDevice!.connect(
-      timeout: _bleConnectTimeout,
-      autoConnect: false,
-    );
+    await _bleDevice!.connect(timeout: _bleConnectTimeout, autoConnect: false);
     _record('BLE: connected to ${_bleDevice!.platformName}');
 
     // ── 3. Monitor connection state ─────────────────────────────────────────
-    _bleConnStateSub = _bleDevice!.connectionState.listen(_onBleConnectionState);
+    _bleConnStateSub = _bleDevice!.connectionState.listen(
+      _onBleConnectionState,
+    );
 
     // ── 4. Discover characteristics ─────────────────────────────────────────
     await _discoverBleCharacteristics();
   }
 
-  /// Walk the GATT table and cache the command + notify characteristics.
   Future<void> _discoverBleCharacteristics() async {
     final services = await _bleDevice!.discoverServices();
     for (final svc in services) {
@@ -399,7 +509,6 @@ class ConnectivityService extends ChangeNotifier {
             _record('BLE: command characteristic found');
           } else if (uuid == kBleNotifyCharUuid.toLowerCase()) {
             _bleNotifyChar = char;
-            // Subscribe to host→controller notifications.
             await char.setNotifyValue(true);
             _bleNotifySub = char.lastValueStream.listen(_onBleNotification);
             _record('BLE: notify characteristic subscribed');
@@ -416,14 +525,13 @@ class ConnectivityService extends ChangeNotifier {
     if (_bleCmdChar == null) throw StateError('BLE: characteristic not ready');
 
     final bytes = command.toBleBytes();
-
-    // Use withoutResponse for high-frequency axis / button events (latency ↓).
-    // Flip to withoutResponse:false for config / rumble (reliability ↑).
     final withoutResponse = command.type != CommandType.rumble;
 
     await _bleCmdChar!.write(bytes, withoutResponse: withoutResponse);
-    _record('BLE TX [${withoutResponse ? "NoAck" : "Ack"}]: '
-        '${_hexDump(bytes)}');
+    _record(
+      'BLE TX [${withoutResponse ? "NoAck" : "Ack"}]: '
+      '${_hexDump(bytes)}',
+    );
   }
 
   Future<void> _bleDisconnect() async {
@@ -432,12 +540,14 @@ class ConnectivityService extends ChangeNotifier {
     await _bleConnStateSub?.cancel();
     try {
       await _bleDevice?.disconnect();
-    } catch (_) {/* ignore */}
-    _bleDevice       = null;
-    _bleCmdChar      = null;
-    _bleNotifyChar   = null;
-    _bleScanSub      = null;
-    _bleNotifySub    = null;
+    } catch (_) {
+      /* ignore */
+    }
+    _bleDevice = null;
+    _bleCmdChar = null;
+    _bleNotifyChar = null;
+    _bleScanSub = null;
+    _bleNotifySub = null;
     _bleConnStateSub = null;
     _record('BLE disconnected');
   }
@@ -448,15 +558,26 @@ class ConnectivityService extends ChangeNotifier {
     _record('BLE state → ${state.name}');
     if (state == BluetoothConnectionState.disconnected) {
       _bleCmdChar = null;
-      _setState(ServiceConnectionState.disconnected, 'BLE link dropped');
+      if (_connState == ServiceConnectionState.connected &&
+          !_userRequestedDisconnect) {
+        _setState(
+          ServiceConnectionState.reconnecting,
+          'BLE link dropped — retrying in 3s…',
+        );
+        Future.delayed(const Duration(seconds: 3), () {
+          if (_activeMode == ActiveMode.bluetooth &&
+              _connState == ServiceConnectionState.reconnecting) {
+            connect();
+          }
+        });
+      } else {
+        _setState(ServiceConnectionState.disconnected, 'BLE disconnected');
+      }
     }
   }
 
-  /// Handle incoming notifications from the host peripheral
-  /// (ACKs, battery level, haptic triggers, mode confirmations…).
   void _onBleNotification(List<int> data) {
     _record('BLE NOTIFY: ${_hexDump(Uint8List.fromList(data))}');
-    // TODO: frame parse — check header byte, dispatch on type nibble.
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -468,18 +589,16 @@ class ConnectivityService extends ChangeNotifier {
   static const int _usbBaudRate = 115200;
   static const int _usbDataBits = UsbPort.DATABITS_8;
   static const int _usbStopBits = UsbPort.STOPBITS_1;
-  static const int _usbParity   = UsbPort.PARITY_NONE;
+  static const int _usbParity = UsbPort.PARITY_NONE;
   static const int _usbFlowCtrl = UsbPort.FLOW_CONTROL_OFF;
 
-  // Filter for a specific device when multiple are attached.
-  // Set to null to pick the first available port.
-  static const int? kTargetVendorId  = null; // e.g. 0x1234
-  static const int? kTargetProductId = null; // e.g. 0x5678
+  static const int? kTargetVendorId = null;
+  static const int? kTargetProductId = null;
 
   // ── State ──────────────────────────────────────────────────────────────────
 
-  UsbPort?                        _usbPort;
-  StreamSubscription<Uint8List>?  _usbRxSub;
+  UsbPort? _usbPort;
+  StreamSubscription<Uint8List>? _usbRxSub;
   StreamSubscription<UsbEvent>? _usbEventSub;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -493,15 +612,17 @@ class ConnectivityService extends ChangeNotifier {
 
     final device = kTargetVendorId != null
         ? devices.firstWhere(
-          (d) => d.vid == kTargetVendorId && d.pid == kTargetProductId,
-      orElse: () =>
-      throw StateError('USB: target VID/PID device not found'),
-    )
+            (d) => d.vid == kTargetVendorId && d.pid == kTargetProductId,
+            orElse: () =>
+                throw StateError('USB: target VID/PID device not found'),
+          )
         : devices.first;
 
-    _record('USB: device "${device.productName}" '
-        '[VID:0x${device.vid?.toRadixString(16)} '
-        'PID:0x${device.pid?.toRadixString(16)}]');
+    _record(
+      'USB: device "${device.productName}" '
+      '[VID:0x${device.vid?.toRadixString(16)} '
+      'PID:0x${device.pid?.toRadixString(16)}]',
+    );
 
     // ── 2. Open the port ────────────────────────────────────────────────────
     _usbPort = await device.create();
@@ -528,10 +649,9 @@ class ConnectivityService extends ChangeNotifier {
     );
 
     // ── 5. Watch for hot-unplug events ──────────────────────────────────────
-    _usbEventSub = UsbSerial.usbEventStream?.listen(_onUsbEvent);
+    // _usbEventSub registration is now exclusively handled by _initUsbEventListener().
   }
 
-  /// Send [command] as a compact 8-byte binary frame over USB serial.
   Future<void> _usbSend(GamepadCommand command) async {
     if (_usbPort == null) throw StateError('USB: port not open');
     final bytes = command.toUsbBytes();
@@ -542,25 +662,23 @@ class ConnectivityService extends ChangeNotifier {
   Future<void> _usbDisconnect() async {
     await _usbRxSub?.cancel();
     await _usbEventSub?.cancel();
-    _usbRxSub    = null;
+    _usbRxSub = null;
     _usbEventSub = null;
     try {
       await _usbPort?.close();
-    } catch (_) {/* ignore */}
+    } catch (_) {
+      /* ignore */
+    }
     _usbPort = null;
     _record('USB port closed');
+    // Re-arm the hot-plug listener so the next attach event is caught.
+    _initUsbEventListener();
   }
 
   // ── Inbound / event handlers ───────────────────────────────────────────────
 
-  /// Handle inbound bytes from the USB host
-  /// (ACK frames, rumble commands, firmware version responses…).
   void _onUsbData(Uint8List data) {
     _record('USB RX [${data.length}B]: ${_hexDump(data)}');
-
-    // TODO: stateful frame reassembler goes here.
-    // Pattern: buffer bytes until 0xAA header + 0x55 footer are both seen,
-    // then dispatch the complete frame to your command handler.
   }
 
   void _onUsbError(Object error) {
@@ -568,32 +686,31 @@ class ConnectivityService extends ChangeNotifier {
     _setState(ServiceConnectionState.error, 'USB error: $error');
   }
 
-  /// Typed adapter: receives the structured [UsbEvent] from
-  /// [UsbSerial.usbEventStream] and delegates to [_onUsbDeviceEvent]
-  /// with the normalised device list.
-  ///
-  /// [UsbEvent] carries:
-  ///   - [UsbEvent.event]  - "ACTION_USB_ATTACHED" or "ACTION_USB_DETACHED"
-  ///   - [UsbEvent.device] - the single [UsbDevice] that changed (may be null)
   void _onUsbEvent(UsbEvent event) {
-    _record('USB event: ${event.event} '
-        '- ${event.device?.productName ?? "unknown device"}');
-    // Build a list compatible with _onUsbDeviceEvent:
-    // empty list on detach signals removal; device wrapped in list on attach.
+    _record(
+      'USB event: ${event.event} '
+      '- ${event.device?.productName ?? "unknown device"}',
+    );
     final isDetach = event.event == UsbEvent.ACTION_USB_DETACHED;
-    final devices  = isDetach || event.device == null
+    final devices = isDetach || event.device == null
         ? <UsbDevice>[]
         : [event.device!];
     _onUsbDeviceEvent(devices);
   }
 
-  /// React to USB attach / detach events fired by the OS.
   void _onUsbDeviceEvent(List<UsbDevice> devices) {
     if (_usbPort != null && devices.isEmpty) {
       _record('USB device removed', level: LogLevel.warning);
       _setState(ServiceConnectionState.disconnected, 'USB device unplugged');
     } else if (devices.isNotEmpty) {
-      _record('USB device list updated (${devices.length} device(s))');
+      _record('USB device attached (${devices.length} device(s))');
+      // Auto-connect if USB mode is active and not already connected.
+      if (_activeMode == ActiveMode.usb &&
+          _connState == ServiceConnectionState.disconnected &&
+          !_userRequestedDisconnect) {
+        _record('USB: auto-connecting on device attach…');
+        connect();
+      }
     }
   }
 
@@ -619,14 +736,13 @@ class ConnectivityService extends ChangeNotifier {
     debugPrint(entry.toString());
     _entries.add(entry);
     if (_entries.length > _maxLogEntries) _entries.removeAt(0);
-    // Callers that change _connState call _setState which calls notifyListeners;
-    // plain log entries don't trigger a rebuild to avoid excessive repaints.
   }
 
-  /// Format a byte array as `AA BB CC …` hex string (truncated at 24 bytes).
   static String _hexDump(Uint8List bytes, {int maxBytes = 24}) {
     final slice = bytes.length > maxBytes ? bytes.sublist(0, maxBytes) : bytes;
-    final hex = slice.map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase()).join(' ');
+    final hex = slice
+        .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
+        .join(' ');
     return bytes.length > maxBytes ? '$hex …(${bytes.length}B)' : hex;
   }
 
@@ -636,7 +752,6 @@ class ConnectivityService extends ChangeNotifier {
 
   @override
   Future<void> dispose() async {
-    // Cancel all timers and subscriptions before calling super.
     _wifiCancelReconnect();
     await _tcpRxSub?.cancel();
     await _tcpSocket?.close();
