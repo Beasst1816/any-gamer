@@ -5,8 +5,35 @@ import '../models/layout_notifier.dart';
 import '../providers/theme_notifier.dart';
 import '../theme/app_theme.dart';
 
-class LayoutEditorOverlay extends StatelessWidget {
-  const LayoutEditorOverlay({super.key});
+class LayoutEditorOverlay extends StatefulWidget {
+  final VoidCallback onClose;
+  const LayoutEditorOverlay({super.key, required this.onClose});
+
+  @override
+  State<LayoutEditorOverlay> createState() => _LayoutEditorOverlayState();
+}
+
+class _LayoutEditorOverlayState extends State<LayoutEditorOverlay> {
+  // Add this state variable to track if the menus are showing
+  bool _isMenuVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LayoutNotifier>().setEditing(true);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _close() {
+    context.read<LayoutNotifier>().setEditing(false);
+    widget.onClose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,111 +41,232 @@ class LayoutEditorOverlay extends StatelessWidget {
     final layout = context.watch<LayoutNotifier>();
     final accent = theme.accentColor;
 
-    return Material(
-      color: AppTheme.kBackground.withAlpha(230),
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('LAYOUT EDITOR', style: AppTheme.labelStyle(20, color: accent)),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
-                  )
-                ],
+    return Stack(
+      children: [
+        // ── Dim layer ───────────────────────────────────────────────────
+        Positioned.fill(
+          child: IgnorePointer(
+            // Make the dim layer lighter when menus are hidden so it's easier to see
+            child: Container(
+              color: Colors.black.withAlpha(_isMenuVisible ? 90 : 40),
+            ),
+          ),
+        ),
+
+        if (_isMenuVisible) ...[
+          // ── Top toolbar ─────────────────────────────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: _TopBar(
+                accent: accent,
+                onReset: layout.resetPositions,
+                onDone: _close,
+                // Pass the hide function down
+                onHide: () => setState(() => _isMenuVisible = false),
               ),
             ),
-            Expanded(
-              child: Row(
-                children: [
-                  // Left Zone Editor
-                  Expanded(
-                    child: _buildReorderableList(
-                      'LEFT ZONE',
-                      layout.leftZone,
-                      accent,
-                          (oldIdx, newIdx) => context.read<LayoutNotifier>().updateLeftZone(oldIdx, newIdx),
+          ),
+
+          // ── Bottom visibility panel ──────────────────────────────────────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: _VisibilityPanel(layout: layout, accent: accent),
+            ),
+          ),
+        ] else ...[
+          // ── Floating "Show Menu" Pill ──────────────────────────────────
+          Positioned(
+            top: 16,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => setState(() => _isMenuVisible = true),
+                  icon: Icon(Icons.visibility, color: accent, size: 16),
+                  label: Text(
+                    'SHOW MENU',
+                    style: AppTheme.labelStyle(
+                      14,
+                      color: accent,
+                      weight: FontWeight.bold,
                     ),
                   ),
-                  const VerticalDivider(color: AppTheme.kHudBorder),
-
-                  // Right Zone Editor
-                  Expanded(
-                    child: _buildReorderableList(
-                      'RIGHT ZONE',
-                      layout.rightZone,
-                      accent,
-                          (oldIdx, newIdx) => context.read<LayoutNotifier>().updateRightZone(oldIdx, newIdx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.kBackground.withAlpha(240),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(color: accent, width: 1.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
                   ),
-                  const VerticalDivider(color: AppTheme.kHudBorder),
-
-                  // Visibility Toggles
-                  Expanded(
-                    flex: 2,
-                    child: _buildVisibilityList(layout, accent),
-                  )
-                ],
+                ),
               ),
-            )
-          ],
-        ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── Top toolbar ───────────────────────────────────────────────────────────────
+
+class _TopBar extends StatelessWidget {
+  final Color accent;
+  final VoidCallback onReset;
+  final VoidCallback onDone;
+  final VoidCallback onHide;
+
+  const _TopBar({
+    required this.accent,
+    required this.onReset,
+    required this.onDone,
+    required this.onHide,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: AppTheme.kBackground.withAlpha(230),
+      child: Row(
+        children: [
+          Text('LAYOUT EDITOR', style: AppTheme.labelStyle(18, color: accent)),
+          const Spacer(),
+          // Hint so the user understands what to do
+          Text(
+            'DRAG BUTTONS TO REPOSITION',
+            style: AppTheme.labelStyle(11, color: AppTheme.kTextSecondary),
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: onHide,
+            child: Text(
+              'HIDE UI',
+              style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
+            ),
+          ),
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: onReset,
+            child: Text(
+              'RESET',
+              style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
+            ),
+          ),
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: onDone,
+            child: Text('DONE', style: AppTheme.labelStyle(13, color: accent)),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildReorderableList(String title, List<String> items, Color accent, Function(int, int) onReorder) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(title, style: AppTheme.labelStyle(16, color: AppTheme.kTextSecondary)),
-        ),
-        Expanded(
-          child: ReorderableListView.builder(
-            itemCount: items.length,
-            onReorder: onReorder,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return ListTile(
-                key: ValueKey(item),
-                title: Text(item.toUpperCase(), style: AppTheme.labelStyle(14)),
-                trailing: Icon(Icons.drag_handle, color: accent),
-              );
-            },
+// ── Bottom visibility panel ───────────────────────────────────────────────────
+
+class _VisibilityPanel extends StatelessWidget {
+  final LayoutNotifier layout;
+  final Color accent;
+
+  // All toggleable component keys — matches original visibility system
+  static const _components = [
+    'lt',
+    'lb',
+    'rt',
+    'rb',
+    'l_stick',
+    'dpad',
+    'buttons',
+    'r_stick',
+    'select',
+    'start',
+  ];
+
+  const _VisibilityPanel({required this.layout, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      color: AppTheme.kBackground.withAlpha(220),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'VISIBILITY',
+            style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _components
+                .map(
+                  (key) => _VisibilityChip(
+                    label: key.toUpperCase(),
+                    visible: layout.isVisible(key),
+                    accent: accent,
+                    onTap: () => layout.toggleVisibility(key),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildVisibilityList(LayoutNotifier layout, Color accent) {
-    final components = ['dpad', 'l_stick', 'buttons', 'r_stick', 'lt', 'lb', 'rt', 'rb', 'select', 'start'];
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text('VISIBILITY', style: AppTheme.labelStyle(16, color: AppTheme.kTextSecondary)),
+class _VisibilityChip extends StatelessWidget {
+  final String label;
+  final bool visible;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _VisibilityChip({
+    required this.label,
+    required this.visible,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: visible ? accent.withAlpha(40) : Colors.transparent,
+          border: Border.all(
+            color: visible ? accent : AppTheme.kHudBorder,
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(6),
         ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: components.length,
-            itemBuilder: (context, index) {
-              final key = components[index];
-              return SwitchListTile(
-                title: Text(key.toUpperCase(), style: AppTheme.labelStyle(14)),
-                value: layout.isVisible(key),
-                activeColor: accent,
-                onChanged: (val) => layout.toggleVisibility(key),
-              );
-            },
+        child: Text(
+          label,
+          style: AppTheme.labelStyle(
+            12,
+            color: visible ? accent : AppTheme.kTextSecondary,
           ),
         ),
-      ],
+      ),
     );
   }
 }

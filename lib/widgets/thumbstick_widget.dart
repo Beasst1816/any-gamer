@@ -34,7 +34,8 @@ class ThumbstickWidget extends StatefulWidget {
   State<ThumbstickWidget> createState() => _ThumbstickWidgetState();
 }
 
-class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerProviderStateMixin {
+class _ThumbstickWidgetState extends State<ThumbstickWidget>
+    with SingleTickerProviderStateMixin {
   // Ultra-fast state management bypassing setState()
   late final ValueNotifier<Offset> _knobOffset;
   late final ValueNotifier<Offset> _normalizedValues;
@@ -65,7 +66,10 @@ class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerPr
 
     _animController.addListener(() {
       if (_returnAnim != null) {
-        _updateStickPhysics(_returnAnim!.value, 1.0); // maxRadius doesn't matter for 0,0
+        _updateStickPhysics(
+          _returnAnim!.value,
+          1.0,
+        ); // maxRadius doesn't matter for 0,0
       }
     });
   }
@@ -105,8 +109,9 @@ class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerPr
       normY = 0.0;
     } else {
       // Sensitivity: rescale the live range above the deadzone
-      final rescale = (magnitude - widget.deadzoneNormalized)
-          / (1.0 - widget.deadzoneNormalized);
+      final rescale =
+          (magnitude - widget.deadzoneNormalized) /
+          (1.0 - widget.deadzoneNormalized);
       final boost = (rescale * widget.sensitivityMultiplier).clamp(0.0, 1.0);
       normX = (normX / magnitude) * boost;
       normY = (normY / magnitude) * boost;
@@ -134,7 +139,10 @@ class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerPr
     _animController.stop();
 
     // Shift coordinate system so center is (0,0)
-    final localPosition = Offset(e.localPosition.dx - center, e.localPosition.dy - center);
+    final localPosition = Offset(
+      e.localPosition.dx - center,
+      e.localPosition.dy - center,
+    );
 
     // Ignore touches outside the bounding box
     if (localPosition.distance > center) return;
@@ -152,7 +160,10 @@ class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerPr
   }
 
   void _handlePointerMove(PointerMoveEvent e, double center, double maxRadius) {
-    final localPosition = Offset(e.localPosition.dx - center, e.localPosition.dy - center);
+    final localPosition = Offset(
+      e.localPosition.dx - center,
+      e.localPosition.dy - center,
+    );
     _updateStickPhysics(localPosition, maxRadius);
   }
 
@@ -165,10 +176,10 @@ class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerPr
     }
 
     // Trigger exponential snap-back animation
-    _returnAnim = Tween<Offset>(
-      begin: _knobOffset.value,
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOutExpo));
+    _returnAnim = Tween<Offset>(begin: _knobOffset.value, end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutExpo),
+        );
 
     _animController.forward(from: 0.0);
   }
@@ -190,7 +201,10 @@ class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerPr
             // Text Label
             Text(
               widget.label,
-              style: AppTheme.labelStyle(size * 0.12, color: AppTheme.kTextSecondary),
+              style: AppTheme.labelStyle(
+                size * 0.12,
+                color: AppTheme.kTextSecondary,
+              ),
             ),
             SizedBox(height: size * 0.02),
 
@@ -213,19 +227,6 @@ class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerPr
                   ),
                 ),
               ),
-            ),
-
-            SizedBox(height: size * 0.02),
-
-            // Real-time HUD readout
-            ValueListenableBuilder<Offset>(
-              valueListenable: _normalizedValues,
-              builder: (context, val, child) {
-                return Text(
-                  'X:${val.dx.toStringAsFixed(2)} Y:${val.dy.toStringAsFixed(2)}',
-                  style: AppTheme.labelStyle(size * 0.10, color: accent.withAlpha(200)),
-                );
-              },
             ),
           ],
         );
@@ -267,8 +268,16 @@ class _ThumbstickPainter extends CustomPainter {
       ..color = AppTheme.kTextSecondary.withAlpha(30)
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
-    canvas.drawLine(Offset(center.dx, center.dy - outerRadius), Offset(center.dx, center.dy + outerRadius), paintGrid);
-    canvas.drawLine(Offset(center.dx - outerRadius, center.dy), Offset(center.dx + outerRadius, center.dy), paintGrid);
+    canvas.drawLine(
+      Offset(center.dx, center.dy - outerRadius),
+      Offset(center.dx, center.dy + outerRadius),
+      paintGrid,
+    );
+    canvas.drawLine(
+      Offset(center.dx - outerRadius, center.dy),
+      Offset(center.dx + outerRadius, center.dy),
+      paintGrid,
+    );
 
     // 3. Draw Outer Neon Border
     final paintOuterBorder = Paint()
@@ -290,13 +299,21 @@ class _ThumbstickPainter extends CustomPainter {
     final paintKnob = Paint()
       ..color = AppTheme.kHudSurface
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(currentOffset, knobRadius * (isL3 ? 0.92 : 1.0), paintKnob);
+    canvas.drawCircle(
+      currentOffset,
+      knobRadius * (isL3 ? 0.92 : 1.0),
+      paintKnob,
+    );
 
     final paintKnobBorder = Paint()
       ..color = accentColor
       ..strokeWidth = isL3 ? 3.0 : 1.5
       ..style = PaintingStyle.stroke;
-    canvas.drawCircle(currentOffset, knobRadius * (isL3 ? 0.92 : 1.0), paintKnobBorder);
+    canvas.drawCircle(
+      currentOffset,
+      knobRadius * (isL3 ? 0.92 : 1.0),
+      paintKnobBorder,
+    );
   }
 
   @override

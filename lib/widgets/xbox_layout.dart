@@ -36,20 +36,7 @@ class XboxLayout extends StatelessWidget {
         final baseUnit = math.min(w, h);
         final double userScale = context.watch<SettingsNotifier>().userScale;
         final layout = context.watch<LayoutNotifier>();
-
-        // Safe array index reading with fallbacks
-        final leftTopKey = layout.leftZone.isNotEmpty
-            ? layout.leftZone[0]
-            : 'l_stick';
-        final leftBottomKey = layout.leftZone.length > 1
-            ? layout.leftZone[1]
-            : 'dpad';
-        final rightTopKey = layout.rightZone.isNotEmpty
-            ? layout.rightZone[0]
-            : 'buttons';
-        final rightBottomKey = layout.rightZone.length > 1
-            ? layout.rightZone[1]
-            : 'r_stick';
+        final accent = Theme.of(context).colorScheme.secondary;
 
         final centerWidth = w * 0.30;
         final centerHeight = h * 0.18 * userScale;
@@ -60,8 +47,6 @@ class XboxLayout extends StatelessWidget {
 
         // Dynamic widget factory
         Widget buildComponent(String key) {
-          if (!layout.isVisible(key)) return const SizedBox.shrink();
-
           final stickSize = baseUnit * 0.40 * userScale;
           final dpadSize = baseUnit * 0.35 * userScale;
           final faceSize = baseUnit * 0.42 * userScale;
@@ -108,99 +93,112 @@ class XboxLayout extends StatelessWidget {
           }
         }
 
+        // Helper to wrap any component as a draggable Positioned
+        Widget buildPositioned(String key, Widget child) {
+          final pos = layout.getPos(key);
+
+          // Visibility check is handled exclusively here now
+          if (!layout.isVisible(key)) return const SizedBox.shrink();
+
+          final posChild = Positioned(
+            left: pos.dx * w,
+            top: pos.dy * h,
+            child: child,
+          );
+
+          if (!layout.isEditing) return posChild;
+
+          // Edit mode: wrap in GestureDetector
+          return Positioned(
+            left: pos.dx * w,
+            top: pos.dy * h,
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                final newDx = pos.dx + details.delta.dx / w;
+                final newDy = pos.dy + details.delta.dy / h;
+                context.read<LayoutNotifier>().updatePosition(
+                  key,
+                  Offset(newDx, newDy),
+                );
+              },
+              child: Stack(
+                children: [
+                  child,
+                  // Drag handle indicator overlay
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: accent.withAlpha(180),
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         return Stack(
           children: [
-            // === TOP STRIP ===
-            if (layout.isVisible('lt') || layout.isVisible('lb'))
-              Positioned(
-                top: h * 0.02,
-                left: w * 0.15,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (layout.isVisible('lt'))
-                      LTButton(
-                        width: triggerW,
-                        height: triggerH,
-                        onSignal: onSignal,
-                        onAxis: onAxis,
-                        isXbox: true,
-                      ),
-                    if (layout.isVisible('lt') && layout.isVisible('lb'))
-                      SizedBox(width: w * 0.02),
-                    if (layout.isVisible('lb'))
-                      LBButton(
-                        width: bumperW,
-                        height: bumperH,
-                        onSignal: onSignal,
-                        isXbox: true,
-                      ),
-                  ],
-                ),
+            buildPositioned(
+              'lt',
+              LTButton(
+                width: triggerW,
+                height: triggerH,
+                onSignal: onSignal,
+                onAxis: onAxis,
+                isXbox: true,
               ),
-            if (layout.isVisible('rt') || layout.isVisible('rb'))
-              Positioned(
-                top: h * 0.02,
-                right: w * 0.15,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (layout.isVisible('rb'))
-                      RBButton(
-                        width: bumperW,
-                        height: bumperH,
-                        onSignal: onSignal,
-                        isXbox: true,
-                      ),
-                    if (layout.isVisible('rt') && layout.isVisible('rb'))
-                      SizedBox(width: w * 0.02),
-                    if (layout.isVisible('rt'))
-                      RTButton(
-                        width: triggerW,
-                        height: triggerH,
-                        onSignal: onSignal,
-                        onAxis: onAxis,
-                        isXbox: true,
-                      ),
-                  ],
-                ),
+            ),
+            buildPositioned(
+              'lb',
+              LBButton(
+                width: bumperW,
+                height: bumperH,
+                onSignal: onSignal,
+                isXbox: true,
               ),
-
-            // === LEFT WING ===
-            Positioned(
-              top: h * 0.28,
-              left: w * 0.05,
-              child: buildComponent(leftTopKey),
             ),
-            Positioned(
-              bottom: h * 0.05,
-              left: w * 0.18,
-              child: buildComponent(leftBottomKey),
+            buildPositioned(
+              'rt',
+              RTButton(
+                width: triggerW,
+                height: triggerH,
+                onSignal: onSignal,
+                onAxis: onAxis,
+                isXbox: true,
+              ),
             ),
-
-            // === RIGHT WING ===
-            Positioned(
-              top: h * 0.28,
-              right: w * 0.05,
-              child: buildComponent(rightTopKey),
+            buildPositioned(
+              'rb',
+              RBButton(
+                width: bumperW,
+                height: bumperH,
+                onSignal: onSignal,
+                isXbox: true,
+              ),
             ),
-            Positioned(
-              bottom: h * 0.05,
-              right: w * 0.18,
-              child: buildComponent(rightBottomKey),
-            ),
-
-            // === CENTER ===
-            Positioned(
-              bottom: h * 0.05,
-              left: (w / 2) - (centerWidth / 2),
-              width: centerWidth,
-              height: centerHeight,
-              child: CenterCluster(
+            buildPositioned('l_stick', buildComponent('l_stick')),
+            buildPositioned('dpad', buildComponent('dpad')),
+            buildPositioned('buttons', buildComponent('buttons')),
+            buildPositioned('r_stick', buildComponent('r_stick')),
+            buildPositioned(
+              'center',
+              SizedBox(
                 width: centerWidth,
                 height: centerHeight,
-                onSignal: onSignal,
-                onOpenSettings: onOpenSettings,
+                child: CenterCluster(
+                  width: centerWidth,
+                  height: centerHeight,
+                  onSignal: onSignal,
+                  onOpenSettings: onOpenSettings,
+                ),
               ),
             ),
           ],

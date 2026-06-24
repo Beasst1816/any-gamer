@@ -260,6 +260,10 @@ class ConnectivityService extends ChangeNotifier {
   /// How long to wait for an mDNS response before falling back to the
   /// stored host/port.
   static const Duration _mdnsScanTimeout = Duration(seconds: 4);
+  static const bool _mdnsEnabled = false;
+
+  static const int _udpDiscoveryPort = 5354;
+  static const Duration _udpDiscoveryTimeout = Duration(seconds: 5);
 
   // ── State ──────────────────────────────────────────────────────────────────
 
@@ -325,9 +329,61 @@ class ConnectivityService extends ChangeNotifier {
     }
   }
 
+  Future<void> _tryUdpDiscovery() async {
+    _record('UDP: listening for BeastReceiver on port $_udpDiscoveryPort…');
+    RawDatagramSocket? socket;
+    try {
+      socket = await RawDatagramSocket.bind(
+        InternetAddress.anyIPv4,
+        _udpDiscoveryPort,
+      );
+
+      final datagram = await socket
+          .where((event) => event == RawSocketEvent.read)
+          .map((_) => socket!.receive())
+          .where((dg) => dg != null)
+          .first
+          .timeout(_udpDiscoveryTimeout);
+
+      // Server IP comes directly from the UDP source address — no parsing required.
+      final serverIp = datagram!.address.address;
+
+      // Optionally validate the payload and read port.
+      int? serverPort;
+      try {
+        final json =
+            jsonDecode(utf8.decode(datagram.data)) as Map<String, dynamic>;
+        if (json['service'] == 'ctrlforge') serverPort = json['port'] as int?;
+      } catch (_) {
+        // Malformed payload — IP from source address is still valid.
+      }
+
+      _wifiHost = serverIp;
+      if (serverPort != null) _wifiPort = serverPort;
+      _record('UDP: found server → $_wifiHost:$_wifiPort');
+    } on TimeoutException {
+      _record(
+        'UDP: no broadcast in ${_udpDiscoveryTimeout.inSeconds}s — using saved host',
+        level: LogLevel.warning,
+      );
+    } catch (e) {
+      _record(
+        'UDP: discovery error ($e) — using saved host',
+        level: LogLevel.warning,
+      );
+    } finally {
+      socket?.close();
+    }
+  }
+
   Future<void> _wifiConnect() async {
-    // Attempt auto-discovery first; falls back to saved host if not found.
-    await _tryMdnsDiscovery();
+    await _tryUdpDiscovery(); // auto-fills _wifiHost/_wifiPort if server is broadcasting
+    _record('TCP → $_wifiHost:$_wifiPort');
+    _tcpSocket = await Socket.connect(
+      _wifiHost,
+      _wifiPort,
+      timeout: _wifiConnectTimeout,
+    );
 
     _record('TCP → $_wifiHost:$_wifiPort');
     _tcpSocket = await Socket.connect(

@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../widgets/xbox_layout.dart';
 import '../widgets/ps_layout.dart';
 import '../widgets/settings_overlay.dart';
+import '../widgets/layout_editor_overlay.dart';
 
 class GamepadScreen extends StatefulWidget {
   const GamepadScreen({super.key});
@@ -20,11 +21,14 @@ class GamepadScreen extends StatefulWidget {
 
 class _GamepadScreenState extends State<GamepadScreen>
     with WidgetsBindingObserver {
+  bool _showLayoutEditor = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
+
+  void _openLayoutEditor() => setState(() => _showLayoutEditor = true);
 
   @override
   void dispose() {
@@ -64,9 +68,11 @@ class _GamepadScreenState extends State<GamepadScreen>
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 280),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return const Align(
+        return  Align(
           alignment: Alignment.centerRight,
-          child: SettingsOverlay(),
+          child: SettingsOverlay(
+            onOpenLayoutEditor: _openLayoutEditor, 
+          ),
         );
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -166,6 +172,13 @@ class _GamepadScreenState extends State<GamepadScreen>
                   left: w * 0.04,
                   child: _buildStatusBar(networkService, h),
                 ),
+                // 4. Layout Editor Overlay — must be Stack child, NOT Navigator.push
+                if (_showLayoutEditor)
+                  Positioned.fill(
+                    child: LayoutEditorOverlay(
+                      onClose: () => setState(() => _showLayoutEditor = false),
+                    ),
+                  ),
 
                 // The old Settings Gear has been completely deleted!
               ],

@@ -196,16 +196,6 @@ windows/runner/win32_window.h
 <files>
 This section contains the contents of the repository's files.
 
-<file path="gamepad_app.code-workspace">
-{
-	"folders": [
-		{
-			"path": "."
-		}
-	]
-}
-</file>
-
 <file path=".gitignore">
 # Miscellaneous
 *.class
@@ -407,81 +397,6 @@ flutter {
 </manifest>
 </file>
 
-<file path="android/app/src/main/AndroidManifest.xml">
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- ─── Bluetooth Permissions (BLE scanning & connection) ─── -->
-    <!-- For Android 12+ (API 31+): Fine-grained BLE permissions -->
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_SCAN"
-        android:usesPermissionFlags="neverForLocation" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-
-    <!-- For Android 11 (API 30) and below: Legacy Bluetooth permissions -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-
-    <!-- ─── WiFi / TCP Permissions ─── -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- ─── USB Serial Permissions ─── -->
-    <uses-permission android:name="android.permission.USB_DEVICE" />
-    <uses-permission android:name="android.permission.USB_ACCESSORY" />
-
-    <application
-        android:label="gamepad_app"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:taskAffinity=""
-            android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
-            <!-- Specifies an Android theme to apply to this Activity as soon as
-                 the Android process has started. This theme is visible to the user
-                 while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI. -->
-            <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
-            
-        </activity>
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
-    </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
-
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
-        </intent>
-    </queries>
-</manifest>
-</file>
-
 <file path="android/app/src/main/kotlin/com/example/gamepad_app/MainActivity.kt">
 package com.example.gamepad_app
 
@@ -559,28 +474,6 @@ class MainActivity : FlutterActivity()
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
-</resources>
-</file>
-
-<file path="android/app/src/main/res/xml/device_filter.xml">
-<?xml version="1.0" encoding="UTF-8"?>
-<resources>
-  <!-- Arduino Uno/Mega (VID:0x2341=9025) -->
-  <usb-device vendor-id="9025" product-id="67" />
-  <usb-device vendor-id="9025" product-id="1" />
-  <!-- CH340 (VID:0x1A86=6790) -->
-  <usb-device vendor-id="6790" product-id="29987" />
-  <!-- FTDI (VID:0x0403=1027) -->
-  <usb-device vendor-id="1027" product-id="24577" />
-  <usb-device vendor-id="1027" product-id="24592" />
-  <usb-device vendor-id="1027" product-id="24593" />
-  <usb-device vendor-id="1027" product-id="24596" />
-  <usb-device vendor-id="1027" product-id="24597" />
-  <!-- CP210x (VID:0x10C4=4292) -->
-  <usb-device vendor-id="4292" product-id="60000" />
-  <usb-device vendor-id="4292" product-id="60016" />
-  <!-- PL2303 (VID:0x067B=1659) -->
-  <usb-device vendor-id="1659" product-id="8963" />
 </resources>
 </file>
 
@@ -1333,6 +1226,16 @@ include(":app")
 description: This file stores settings for Dart & Flutter DevTools.
 documentation: https://docs.flutter.dev/tools/devtools/extensions#configure-extension-enablement-states
 extensions:
+</file>
+
+<file path="gamepad_app.code-workspace">
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	]
+}
 </file>
 
 <file path="ios/.gitignore">
@@ -2535,144 +2438,6 @@ class LayoutConfig {
 }
 </file>
 
-<file path="lib/providers/settings_notifier.dart">
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-class SettingsNotifier extends ChangeNotifier {
-  static const String _sensitivityKey = 'sensitivity';
-  static const String _deadzoneKey = 'deadzone';
-  static const String _vibrationKey = 'vibration';
-  static const String _userScaleKey = 'userScale';
-  static const String _wifiHostKey = 'wifi_host';
-  static const String _wifiPortKey = 'wifi_port';
-
-  static const double _defaultSensitivity = 75.0;
-  static const double _defaultDeadzone = 12.0;
-  static const bool _defaultVibration = true;
-  static const double _defaultUserScale = 1.0;
-  static const String _defaultWifiHost = '192.168.1.100';
-  static const int _defaultWifiPort = 5000;
-
-  late SharedPreferences _prefs;
-  late double _sensitivity;
-  late double _deadzone;
-  late bool _vibration;
-  late double _userScale;
-  late String _wifiHost;
-  late int _wifiPort;
-
-  SettingsNotifier(SharedPreferences prefs) {
-    _prefs = prefs;
-    _loadFromPreferences();
-  }
-
-  void _loadFromPreferences() {
-    _sensitivity = _prefs.getDouble(_sensitivityKey) ?? _defaultSensitivity;
-    _deadzone = _prefs.getDouble(_deadzoneKey) ?? _defaultDeadzone;
-    _vibration = _prefs.getBool(_vibrationKey) ?? _defaultVibration;
-    _userScale = _prefs.getDouble(_userScaleKey) ?? _defaultUserScale;
-    _wifiHost = _prefs.getString(_wifiHostKey) ?? _defaultWifiHost;
-    _wifiPort = _prefs.getInt(_wifiPortKey) ?? _defaultWifiPort;
-  }
-
-  double get sensitivity => _sensitivity;
-  double get deadzone => _deadzone;
-  bool get vibration => _vibration;
-  double get userScale => _userScale;
-  String get wifiHost => _wifiHost;
-  int get wifiPort => _wifiPort;
-
-  Future<void> setSensitivity(double val) async {
-    _sensitivity = val;
-    try {
-      await _prefs.setDouble(_sensitivityKey, val);
-    } catch (e) {
-      print('Error persisting sensitivity: $e');
-      rethrow;
-    }
-    notifyListeners();
-  }
-
-  Future<void> setDeadzone(double val) async {
-    _deadzone = val;
-    try {
-      await _prefs.setDouble(_deadzoneKey, val);
-    } catch (e) {
-      print('Error persisting deadzone: $e');
-      rethrow;
-    }
-    notifyListeners();
-  }
-
-  Future<void> setVibration(bool val) async {
-    _vibration = val;
-    try {
-      await _prefs.setBool(_vibrationKey, val);
-    } catch (e) {
-      print('Error persisting vibration: $e');
-      rethrow;
-    }
-    notifyListeners();
-  }
-
-  Future<void> setUserScale(double val) async {
-    _userScale = val;
-    try {
-      await _prefs.setDouble(_userScaleKey, val);
-    } catch (e) {
-      print('Error persisting user scale: $e');
-      rethrow;
-    }
-    notifyListeners();
-  }
-
-  Future<void> setWifiHost(String val) async {
-    _wifiHost = val;
-    try {
-      await _prefs.setString(_wifiHostKey, val);
-    } catch (e) {
-      print('Error persisting wifi host: $e');
-      rethrow;
-    }
-    notifyListeners();
-  }
-
-  Future<void> setWifiPort(int val) async {
-    _wifiPort = val;
-    try {
-      await _prefs.setInt(_wifiPortKey, val);
-    } catch (e) {
-      print('Error persisting wifi port: $e');
-      rethrow;
-    }
-    notifyListeners();
-  }
-
-  Future<void> reset() async {
-    _sensitivity = _defaultSensitivity;
-    _deadzone = _defaultDeadzone;
-    _vibration = _defaultVibration;
-    _userScale = _defaultUserScale;
-    _wifiHost = _defaultWifiHost;
-    _wifiPort = _defaultWifiPort;
-
-    try {
-      await _prefs.setDouble(_sensitivityKey, _defaultSensitivity);
-      await _prefs.setDouble(_deadzoneKey, _defaultDeadzone);
-      await _prefs.setBool(_vibrationKey, _defaultVibration);
-      await _prefs.setDouble(_userScaleKey, _defaultUserScale);
-      await _prefs.setString(_wifiHostKey, _defaultWifiHost);
-      await _prefs.setInt(_wifiPortKey, _defaultWifiPort);
-    } catch (e) {
-      print('Error resetting settings: $e');
-      rethrow;
-    }
-    notifyListeners();
-  }
-}
-</file>
-
 <file path="lib/providers/theme_notifier.dart">
 import 'package:flutter/material.dart';
 
@@ -3478,8 +3243,35 @@ import '../models/layout_notifier.dart';
 import '../providers/theme_notifier.dart';
 import '../theme/app_theme.dart';
 
-class LayoutEditorOverlay extends StatelessWidget {
-  const LayoutEditorOverlay({super.key});
+class LayoutEditorOverlay extends StatefulWidget {
+  final VoidCallback onClose;
+  const LayoutEditorOverlay({super.key, required this.onClose});
+
+  @override
+  State<LayoutEditorOverlay> createState() => _LayoutEditorOverlayState();
+}
+
+class _LayoutEditorOverlayState extends State<LayoutEditorOverlay> {
+  // Add this state variable to track if the menus are showing
+  bool _isMenuVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LayoutNotifier>().setEditing(true);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _close() {
+    context.read<LayoutNotifier>().setEditing(false);
+    widget.onClose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -3487,967 +3279,232 @@ class LayoutEditorOverlay extends StatelessWidget {
     final layout = context.watch<LayoutNotifier>();
     final accent = theme.accentColor;
 
-    return Material(
-      color: AppTheme.kBackground.withAlpha(230),
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('LAYOUT EDITOR', style: AppTheme.labelStyle(20, color: accent)),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
-                  )
-                ],
+    return Stack(
+      children: [
+        // ── Dim layer ───────────────────────────────────────────────────
+        Positioned.fill(
+          child: IgnorePointer(
+            // Make the dim layer lighter when menus are hidden so it's easier to see
+            child: Container(
+              color: Colors.black.withAlpha(_isMenuVisible ? 90 : 40),
+            ),
+          ),
+        ),
+
+        if (_isMenuVisible) ...[
+          // ── Top toolbar ─────────────────────────────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: _TopBar(
+                accent: accent,
+                onReset: layout.resetPositions,
+                onDone: _close,
+                // Pass the hide function down
+                onHide: () => setState(() => _isMenuVisible = false),
               ),
             ),
-            Expanded(
-              child: Row(
-                children: [
-                  // Left Zone Editor
-                  Expanded(
-                    child: _buildReorderableList(
-                      'LEFT ZONE',
-                      layout.leftZone,
-                      accent,
-                          (oldIdx, newIdx) => context.read<LayoutNotifier>().updateLeftZone(oldIdx, newIdx),
+          ),
+
+          // ── Bottom visibility panel ──────────────────────────────────────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: _VisibilityPanel(layout: layout, accent: accent),
+            ),
+          ),
+        ] else ...[
+          // ── Floating "Show Menu" Pill ──────────────────────────────────
+          Positioned(
+            top: 16,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => setState(() => _isMenuVisible = true),
+                  icon: Icon(Icons.visibility, color: accent, size: 16),
+                  label: Text(
+                    'SHOW MENU',
+                    style: AppTheme.labelStyle(
+                      14,
+                      color: accent,
+                      weight: FontWeight.bold,
                     ),
                   ),
-                  const VerticalDivider(color: AppTheme.kHudBorder),
-
-                  // Right Zone Editor
-                  Expanded(
-                    child: _buildReorderableList(
-                      'RIGHT ZONE',
-                      layout.rightZone,
-                      accent,
-                          (oldIdx, newIdx) => context.read<LayoutNotifier>().updateRightZone(oldIdx, newIdx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.kBackground.withAlpha(240),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(color: accent, width: 1.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
                   ),
-                  const VerticalDivider(color: AppTheme.kHudBorder),
-
-                  // Visibility Toggles
-                  Expanded(
-                    flex: 2,
-                    child: _buildVisibilityList(layout, accent),
-                  )
-                ],
+                ),
               ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReorderableList(String title, List<String> items, Color accent, Function(int, int) onReorder) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(title, style: AppTheme.labelStyle(16, color: AppTheme.kTextSecondary)),
-        ),
-        Expanded(
-          child: ReorderableListView.builder(
-            itemCount: items.length,
-            onReorder: onReorder,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return ListTile(
-                key: ValueKey(item),
-                title: Text(item.toUpperCase(), style: AppTheme.labelStyle(14)),
-                trailing: Icon(Icons.drag_handle, color: accent),
-              );
-            },
+            ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVisibilityList(LayoutNotifier layout, Color accent) {
-    final components = ['dpad', 'l_stick', 'buttons', 'r_stick', 'lt', 'lb', 'rt', 'rb', 'select', 'start'];
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text('VISIBILITY', style: AppTheme.labelStyle(16, color: AppTheme.kTextSecondary)),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: components.length,
-            itemBuilder: (context, index) {
-              final key = components[index];
-              return SwitchListTile(
-                title: Text(key.toUpperCase(), style: AppTheme.labelStyle(14)),
-                value: layout.isVisible(key),
-                activeColor: accent,
-                onChanged: (val) => layout.toggleVisibility(key),
-              );
-            },
-          ),
-        ),
+        ],
       ],
     );
   }
 }
-</file>
 
-<file path="lib/widgets/settings_overlay.dart">
-import 'dart:ui';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// ── Top toolbar ───────────────────────────────────────────────────────────────
 
-import '../models/layout_notifier.dart';
-import '../providers/settings_notifier.dart';
-import '../providers/theme_notifier.dart';
-import '../services/connectivity_service.dart';
-import '../services/gamepad_command.dart';
-import '../theme/app_theme.dart';
-import 'layout_editor_overlay.dart'; // REQUIRED TO OPEN THE EDITOR
+class _TopBar extends StatelessWidget {
+  final Color accent;
+  final VoidCallback onReset;
+  final VoidCallback onDone;
+  final VoidCallback onHide;
 
-class SettingsOverlay extends StatefulWidget {
-  const SettingsOverlay({super.key});
-
-  @override
-  State<SettingsOverlay> createState() => _SettingsOverlayState();
-}
-
-class _SettingsOverlayState extends State<SettingsOverlay> {
-  // Local state variables for ultra-smooth sliding without disk latency
-  double? _localSensitivity;
-  double? _localDeadzone;
-  double? _localUserScale;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.watch<ThemeNotifier>();
-    final settings = context.watch<SettingsNotifier>();
-    final layout = context.watch<LayoutNotifier>();
-    final network = context.watch<ConnectivityService>();
-    final accent = theme.accentColor;
-
-    // Sync local state with the provider on initial load
-    _localSensitivity ??= settings.sensitivity;
-    _localDeadzone ??= settings.deadzone;
-    _localUserScale ??= settings.userScale;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final panelWidth = (w * 0.45 > 420) ? 420.0 : w * 0.45;
-
-        return Material(
-          color: Colors.transparent,
-          child: Container(
-            width: panelWidth,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              color: AppTheme.kHudSurface.withAlpha(240),
-              border: const Border(
-                left: BorderSide(color: AppTheme.kHudBorder),
-              ),
-            ),
-            child: ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: SafeArea(
-                  child: Column(
-                    children: [
-                      _buildHeader(context, settings, accent),
-                      const Divider(color: AppTheme.kHudBorder, height: 1),
-                      Expanded(
-                        child: ListView(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
-                          ),
-                          children: [
-                            _buildSectionTitle('INPUT', accent),
-                            _buildSliderRow(
-                              'SENSITIVITY',
-                              _localSensitivity!,
-                              0,
-                              100,
-                              accent,
-                              onLocalChange: (v) => _localSensitivity = v,
-                              onSaveToDisk: (v) => settings.setSensitivity(v),
-                            ),
-                            _buildSliderRow(
-                              'DEADZONE',
-                              _localDeadzone!,
-                              0,
-                              30,
-                              accent,
-                              onLocalChange: (v) => _localDeadzone = v,
-                              onSaveToDisk: (v) => settings.setDeadzone(v),
-                            ),
-                            _buildSwitchRow(
-                              'VIBRATION',
-                              settings.vibration,
-                              accent,
-                              (v) => settings.setVibration(v),
-                            ),
-                            const SizedBox(height: 24),
-
-                            _buildSectionTitle('LAYOUT', accent),
-                            _buildSegmentedControl<bool>(
-                              value: layout.isXbox,
-                              options: const {
-                                true: 'XBOX',
-                                false: 'PLAYSTATION',
-                              },
-                              accent: accent,
-                              onChanged: (v) {
-                                if (v != layout.isXbox) {
-                                  layout.toggleLayout();
-                                  // isXbox has already flipped, so read the new value
-                                  final newProfile = layout.isXbox
-                                      ? 'xbox360'
-                                      : 'ds4';
-                                  context
-                                      .read<ConnectivityService>()
-                                      .sendCommand(
-                                        GamepadCommandFactory.setProfile(
-                                          newProfile,
-                                        ),
-                                      );
-                                }
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            _buildSliderRow(
-                              'BUTTON SIZE',
-                              _localUserScale!,
-                              0.7,
-                              1.4,
-                              accent,
-                              isPercentage: true,
-                              onLocalChange: (v) => _localUserScale = v,
-                              onSaveToDisk: (v) => settings.setUserScale(v),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildActionButton('EDIT LAYOUT', accent, () {
-                              Navigator.of(
-                                context,
-                              ).pop(); // Close settings panel
-                              showGeneralDialog(
-                                context: context,
-                                barrierDismissible: true,
-                                barrierLabel: 'LayoutEditorDismiss',
-                                barrierColor: Colors.black87,
-                                pageBuilder:
-                                    (context, animation, secondaryAnimation) {
-                                      return const LayoutEditorOverlay();
-                                    },
-                              );
-                            }),
-                            const SizedBox(height: 24),
-
-                            _buildSectionTitle('CONNECTION', accent),
-                            if (network.activeMode == ActiveMode.wifi) ...[
-                              // IP and port are resolved automatically via mDNS.
-                              // Manual override is available through advanced settings (future feature).
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.wifi_find,
-                                      size: 14,
-                                      color: accent,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        network.isConnected
-                                            ? 'Connected to ${context.read<SettingsNotifier>().wifiHost}'
-                                            : 'Auto-discovering on local network…',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.kTextPrimary
-                                              .withAlpha(180),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            _buildSegmentedControl<ActiveMode>(
-                              value: network.activeMode,
-                              options: const {
-                                ActiveMode.bluetooth: 'BT',
-                                ActiveMode.wifi: 'WIFI',
-                                ActiveMode.usb: 'USB',
-                              },
-                              accent: accent,
-                              onChanged: (v) => network.setMode(v),
-                            ),
-                            const SizedBox(height: 24),
-                            // Connect / Disconnect button
-                            _buildActionButton(
-                              network.isConnected ? 'DISCONNECT' : 'CONNECT',
-                              network.isConnected ? Colors.redAccent : accent,
-                              () async {
-                                if (network.isConnected) {
-                                  await network.disconnect();
-                                } else {
-                                  await network.connect();
-                                }
-                              },
-                            ),
-
-                            // Connection status text
-                            const SizedBox(height: 8),
-                            Text(
-                              network.statusMessage,
-                              textAlign: TextAlign.center,
-                              style: AppTheme.labelStyle(
-                                11,
-                                color: AppTheme.kTextSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
-                            _buildSectionTitle('APPEARANCE', accent),
-                            _buildColorPicker(theme),
-                            const SizedBox(height: 32),
-                          ],
-                        ),
-                      ),
-                      _buildFooter(context, accent),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHeader(
-    BuildContext context,
-    SettingsNotifier settings,
-    Color accent,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Icon(Icons.flash_on, color: accent),
-          const SizedBox(width: 8),
-          Text('SETTINGS', style: AppTheme.labelStyle(20)),
-          const Spacer(),
-          TextButton(
-            onPressed: () {
-              settings.reset();
-              setState(() {
-                _localSensitivity = 75.0;
-                _localDeadzone = 12.0;
-                _localUserScale = 1.0;
-              });
-            },
-            child: Text(
-              'RESET',
-              style: AppTheme.labelStyle(14, color: AppTheme.kTextSecondary),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, color: AppTheme.kTextSecondary),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, Color accent) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Text(
-        title,
-        style: AppTheme.labelStyle(14, color: AppTheme.kTextSecondary),
-      ),
-    );
-  }
-
-  Widget _buildSliderRow(
-    String label,
-    double value,
-    double min,
-    double max,
-    Color accent, {
-    bool isPercentage = false,
-    required Function(double) onLocalChange,
-    required Function(double) onSaveToDisk,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3, // Safely expands instead of hardcoding 90px
-            child: Text(label, style: AppTheme.labelStyle(12)),
-          ),
-          Expanded(
-            flex: 5,
-            child: SliderTheme(
-              data: SliderThemeData(
-                activeTrackColor: accent,
-                inactiveTrackColor: Colors.white12,
-                thumbColor: accent,
-                overlayColor: accent.withAlpha(50),
-                trackHeight: 4,
-              ),
-              child: Slider(
-                value: value,
-                min: min,
-                max: max,
-                onChanged: (val) {
-                  setState(() {
-                    onLocalChange(val);
-                  });
-                },
-                onChangeEnd: (val) {
-                  onSaveToDisk(val);
-                },
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              isPercentage
-                  ? '${(value * 100).toInt()}%'
-                  : value.toInt().toString(),
-              textAlign: TextAlign.right,
-              style: AppTheme.labelStyle(14, color: accent),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSwitchRow(
-    String label,
-    bool value,
-    Color accent,
-    Function(bool) onChanged,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: AppTheme.labelStyle(12)),
-          CupertinoSwitch(
-            value: value,
-            activeColor: accent,
-            trackColor: Colors.white12,
-            onChanged: onChanged,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSegmentedControl<T>({
-    required T value,
-    required Map<T, String> options,
-    required Color accent,
-    required Function(T) onChanged,
-  }) {
-    return Container(
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.black38,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.kHudBorder),
-      ),
-      child: Row(
-        children: options.entries.map((entry) {
-          final isSelected = value == entry.key;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(entry.key),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isSelected ? accent.withAlpha(50) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(7),
-                  border: isSelected ? Border.all(color: accent) : null,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  entry.value,
-                  style: AppTheme.labelStyle(
-                    14,
-                    color: isSelected ? accent : AppTheme.kTextSecondary,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String label, Color accent, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.black38,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: accent.withAlpha(100)),
-        ),
-        alignment: Alignment.center,
-        child: Text(label, style: AppTheme.labelStyle(14, color: accent)),
-      ),
-    );
-  }
-
-  Widget _buildColorPicker(ThemeNotifier theme) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      alignment: WrapAlignment.spaceBetween,
-      children: theme.accentOptions.map((color) {
-        final isSelected = theme.accentColor == color;
-        return GestureDetector(
-          onTap: () => theme.setAccent(color),
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: isSelected
-                  ? Border.all(color: Colors.white, width: 3)
-                  : null,
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: color.withAlpha(150),
-                        blurRadius: 12,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                  : [],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context, Color accent) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: SizedBox(
-        width: double.infinity,
-        height: 48,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: accent.withAlpha(50),
-            foregroundColor: accent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(color: accent),
-            ),
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('DONE', style: AppTheme.labelStyle(16, color: accent)),
-        ),
-      ),
-    );
-  }
-}
-</file>
-
-<file path="lib/widgets/shoulder_buttons.dart">
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-
-import '../providers/theme_notifier.dart';
-import '../theme/app_theme.dart';
-
-/// Base class to handle strict Multitouch and properly dispose ValueNotifiers
-class _BaseShoulderButton extends StatefulWidget {
-  final String id;
-  final String label;
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-
-  const _BaseShoulderButton({
-    super.key,
-    required this.id,
-    required this.label,
-    required this.width,
-    required this.height,
-    required this.onSignal,
+  const _TopBar({
+    required this.accent,
+    required this.onReset,
+    required this.onDone,
+    required this.onHide,
   });
 
   @override
-  State<_BaseShoulderButton> createState() => _BaseShoulderButtonState();
-}
-
-class _BaseShoulderButtonState extends State<_BaseShoulderButton> {
-  late final ValueNotifier<bool> _isPressed;
-
-  @override
-  void initState() {
-    super.initState();
-    _isPressed = ValueNotifier(false);
-  }
-
-  @override
-  void dispose() {
-    _isPressed.dispose();
-    super.dispose();
-  }
-
-  void _handlePointerDown(PointerDownEvent event) {
-    HapticFeedback.lightImpact();
-    _isPressed.value = true;
-    widget.onSignal(widget.id, true);
-  }
-
-  void _handlePointerUpOrCancel(PointerEvent event) {
-    _isPressed.value = false;
-    widget.onSignal(widget.id, false);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeNotifier>();
-    final accent = theme.accentColor;
-
-    return Listener(
-      onPointerDown: _handlePointerDown,
-      onPointerUp: _handlePointerUpOrCancel,
-      onPointerCancel: _handlePointerUpOrCancel,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _isPressed,
-        builder: (context, pressed, child) {
-          return AnimatedScale(
-            scale: pressed ? 0.92 : 1.0,
-            duration: const Duration(milliseconds: 50),
-            child: RepaintBoundary(
-              child: Container(
-                width: widget.width,
-                height: widget.height,
-                decoration: BoxDecoration(
-                  color: AppTheme.kHudSurface,
-                  borderRadius: BorderRadius.circular(widget.width * 0.5),
-                  border: Border.all(
-                    color: pressed ? accent : AppTheme.kHudBorder,
-                    width: 2,
-                  ),
-                  boxShadow: pressed
-                      ? [
-                    BoxShadow(
-                      color: accent.withAlpha(140),
-                      blurRadius: 14,
-                      spreadRadius: 2,
-                    )
-                  ]
-                      : [],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  widget.label,
-                  style: AppTheme.labelStyle(
-                    // Scales text relative to the button's height
-                    widget.height * 0.35,
-                    color: pressed ? accent : AppTheme.kTextSecondary,
-                  ),
-                ),
-              ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: AppTheme.kBackground.withAlpha(230),
+      child: Row(
+        children: [
+          Text('LAYOUT EDITOR', style: AppTheme.labelStyle(18, color: accent)),
+          const Spacer(),
+          // Hint so the user understands what to do
+          Text(
+            'DRAG BUTTONS TO REPOSITION',
+            style: AppTheme.labelStyle(11, color: AppTheme.kTextSecondary),
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: onHide,
+            child: Text(
+              'HIDE UI',
+              style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
             ),
-          );
-        },
+          ),
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: onReset,
+            child: Text(
+              'RESET',
+              style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
+            ),
+          ),
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: onDone,
+            child: Text('DONE', style: AppTheme.labelStyle(13, color: accent)),
+          ),
+        ],
       ),
     );
   }
 }
 
-// -----------------------------------------------------------------------------
-// Specific Implementations
-// -----------------------------------------------------------------------------
+// ── Bottom visibility panel ───────────────────────────────────────────────────
 
-class LTButton extends StatefulWidget {
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-  final void Function(String id, double value)? onAxis;
+class _VisibilityPanel extends StatelessWidget {
+  final LayoutNotifier layout;
+  final Color accent;
 
-  const LTButton({super.key, required this.width, required this.height, required this.onSignal, this.onAxis});
+  // All toggleable component keys — matches original visibility system
+  static const _components = [
+    'lt',
+    'lb',
+    'rt',
+    'rb',
+    'l_stick',
+    'dpad',
+    'buttons',
+    'r_stick',
+    'select',
+    'start',
+  ];
 
-  @override
-  State<LTButton> createState() => _LTButtonState();
-}
-
-class _LTButtonState extends State<LTButton> {
-  late final ValueNotifier<bool> _isPressed;
-  double _lastSent = 0.0;
-  final String _id = 'ABS_Z';
-
-  @override
-  void initState() {
-    super.initState();
-    _isPressed = ValueNotifier(false);
-  }
-
-  @override
-  void dispose() {
-    _isPressed.dispose();
-    super.dispose();
-  }
-
-  void _updatePressureFromEvent(PointerEvent e) {
-    final localY = e.localPosition.dy.clamp(0.0, widget.height);
-    final pressure = (localY / widget.height).clamp(0.0, 1.0);
-    if ((pressure - _lastSent).abs() >= 0.01) {
-      widget.onAxis?.call(_id, pressure);
-      _lastSent = pressure;
-    }
-  }
-
-  void _handlePointerDown(PointerDownEvent event) {
-    HapticFeedback.lightImpact();
-    _isPressed.value = true;
-    widget.onSignal(_id, true);
-    _updatePressureFromEvent(event);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    _updatePressureFromEvent(event);
-  }
-
-  void _handlePointerUpOrCancel(PointerEvent event) {
-    _isPressed.value = false;
-    widget.onSignal(_id, false);
-    widget.onAxis?.call(_id, 0.0);
-    _lastSent = 0.0;
-  }
+  const _VisibilityPanel({required this.layout, required this.accent});
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeNotifier>();
-    final accent = theme.accentColor;
-
-    return Listener(
-      onPointerDown: _handlePointerDown,
-      onPointerMove: _handlePointerMove,
-      onPointerUp: _handlePointerUpOrCancel,
-      onPointerCancel: _handlePointerUpOrCancel,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _isPressed,
-        builder: (context, pressed, child) {
-          return AnimatedScale(
-            scale: pressed ? 0.92 : 1.0,
-            duration: const Duration(milliseconds: 50),
-            child: RepaintBoundary(
-              child: Container(
-                width: widget.width,
-                height: widget.height,
-                decoration: BoxDecoration(
-                  color: AppTheme.kHudSurface,
-                  borderRadius: BorderRadius.circular(widget.width * 0.5),
-                  border: Border.all(
-                    color: pressed ? accent : AppTheme.kHudBorder,
-                    width: 2,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      color: AppTheme.kBackground.withAlpha(220),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'VISIBILITY',
+            style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _components
+                .map(
+                  (key) => _VisibilityChip(
+                    label: key.toUpperCase(),
+                    visible: layout.isVisible(key),
+                    accent: accent,
+                    onTap: () => layout.toggleVisibility(key),
                   ),
-                  boxShadow: pressed
-                      ? [
-                          BoxShadow(
-                            color: accent.withAlpha(140),
-                            blurRadius: 14,
-                            spreadRadius: 2,
-                          )
-                        ]
-                      : [],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'LT',
-                  style: AppTheme.labelStyle(
-                    widget.height * 0.35,
-                    color: pressed ? accent : AppTheme.kTextSecondary,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
+                )
+                .toList(),
+          ),
+        ],
       ),
     );
   }
 }
 
+class _VisibilityChip extends StatelessWidget {
+  final String label;
+  final bool visible;
+  final Color accent;
+  final VoidCallback onTap;
 
-class RTButton extends StatefulWidget {
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-  final void Function(String id, double value)? onAxis;
-
-  const RTButton({super.key, required this.width, required this.height, required this.onSignal, this.onAxis});
-
-  @override
-  State<RTButton> createState() => _RTButtonState();
-}
-
-class _RTButtonState extends State<RTButton> {
-  late final ValueNotifier<bool> _isPressed;
-  double _lastSent = 0.0;
-  final String _id = 'ABS_RZ';
-
-  @override
-  void initState() {
-    super.initState();
-    _isPressed = ValueNotifier(false);
-  }
-
-  @override
-  void dispose() {
-    _isPressed.dispose();
-    super.dispose();
-  }
-
-  void _updatePressureFromEvent(PointerEvent e) {
-    final localY = e.localPosition.dy.clamp(0.0, widget.height);
-    final pressure = (localY / widget.height).clamp(0.0, 1.0);
-    if ((pressure - _lastSent).abs() >= 0.01) {
-      widget.onAxis?.call(_id, pressure);
-      _lastSent = pressure;
-    }
-  }
-
-  void _handlePointerDown(PointerDownEvent event) {
-    HapticFeedback.lightImpact();
-    _isPressed.value = true;
-    widget.onSignal(_id, true);
-    _updatePressureFromEvent(event);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    _updatePressureFromEvent(event);
-  }
-
-  void _handlePointerUpOrCancel(PointerEvent event) {
-    _isPressed.value = false;
-    widget.onSignal(_id, false);
-    widget.onAxis?.call(_id, 0.0);
-    _lastSent = 0.0;
-  }
+  const _VisibilityChip({
+    required this.label,
+    required this.visible,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeNotifier>();
-    final accent = theme.accentColor;
-
-    return Listener(
-      onPointerDown: _handlePointerDown,
-      onPointerMove: _handlePointerMove,
-      onPointerUp: _handlePointerUpOrCancel,
-      onPointerCancel: _handlePointerUpOrCancel,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _isPressed,
-        builder: (context, pressed, child) {
-          return AnimatedScale(
-            scale: pressed ? 0.92 : 1.0,
-            duration: const Duration(milliseconds: 50),
-            child: RepaintBoundary(
-              child: Container(
-                width: widget.width,
-                height: widget.height,
-                decoration: BoxDecoration(
-                  color: AppTheme.kHudSurface,
-                  borderRadius: BorderRadius.circular(widget.width * 0.5),
-                  border: Border.all(
-                    color: pressed ? accent : AppTheme.kHudBorder,
-                    width: 2,
-                  ),
-                  boxShadow: pressed
-                      ? [
-                          BoxShadow(
-                            color: accent.withAlpha(140),
-                            blurRadius: 14,
-                            spreadRadius: 2,
-                          )
-                        ]
-                      : [],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'RT',
-                  style: AppTheme.labelStyle(
-                    widget.height * 0.35,
-                    color: pressed ? accent : AppTheme.kTextSecondary,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: visible ? accent.withAlpha(40) : Colors.transparent,
+          border: Border.all(
+            color: visible ? accent : AppTheme.kHudBorder,
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          label,
+          style: AppTheme.labelStyle(
+            12,
+            color: visible ? accent : AppTheme.kTextSecondary,
+          ),
+        ),
       ),
-    );
-  }
-}
-
-class LBButton extends StatelessWidget {
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-
-  const LBButton({super.key, required this.width, required this.height, required this.onSignal});
-
-  @override
-  Widget build(BuildContext context) {
-    return _BaseShoulderButton(
-        key: key,
-        id: 'BTN_TL',
-        label: 'LB',
-        width: width,
-        height: height,
-        onSignal: onSignal
-    );
-  }
-}
-
-class RBButton extends StatelessWidget {
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-
-  const RBButton({super.key, required this.width, required this.height, required this.onSignal});
-
-  @override
-  Widget build(BuildContext context) {
-    return _BaseShoulderButton(
-        key: key,
-        id: 'BTN_TR',
-        label: 'RB',
-        width: width,
-        height: height,
-        onSignal: onSignal
     );
   }
 }
@@ -7021,23 +6078,6 @@ add_custom_target(flutter_assemble DEPENDS
 )
 </file>
 
-<file path="windows/flutter/generated_plugin_registrant.cc">
-//
-//  Generated file. Do not edit.
-//
-
-// clang-format off
-
-#include "generated_plugin_registrant.h"
-
-#include <permission_handler_windows/permission_handler_windows_plugin.h>
-
-void RegisterPlugins(flutter::PluginRegistry* registry) {
-  PermissionHandlerWindowsPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
-}
-</file>
-
 <file path="windows/flutter/generated_plugin_registrant.h">
 //
 //  Generated file. Do not edit.
@@ -7901,6 +6941,1344 @@ class Win32Window {
 #endif  // RUNNER_WIN32_WINDOW_H_
 </file>
 
+<file path="android/app/src/main/AndroidManifest.xml">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- ─── Bluetooth Permissions (BLE scanning & connection) ─── -->
+    <!-- For Android 12+ (API 31+): Fine-grained BLE permissions -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- For Android 11 (API 30) and below: Legacy Bluetooth permissions -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <!-- ─── WiFi / TCP Permissions ─── -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ─── USB Serial Permissions ─── -->
+    <uses-permission android:name="android.permission.USB_DEVICE" />
+    <uses-permission android:name="android.permission.USB_ACCESSORY" />
+
+    <application
+        android:label="gamepad_app"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <!-- Specifies an Android theme to apply to this Activity as soon as
+                 the Android process has started. This theme is visible to the user
+                 while the Flutter UI initializes. After that, this theme continues
+                 to determine the Window background behind the Flutter UI. -->
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
+            
+        </activity>
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+    <!-- Required to query activities that can process text, see:
+         https://developer.android.com/training/package-visibility and
+         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
+
+         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>
+</file>
+
+<file path="android/app/src/main/res/xml/device_filter.xml">
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+  <!-- Arduino Uno/Mega (VID:0x2341=9025) -->
+  <usb-device vendor-id="9025" product-id="67" />
+  <usb-device vendor-id="9025" product-id="1" />
+  <!-- CH340 (VID:0x1A86=6790) -->
+  <usb-device vendor-id="6790" product-id="29987" />
+  <!-- FTDI (VID:0x0403=1027) -->
+  <usb-device vendor-id="1027" product-id="24577" />
+  <usb-device vendor-id="1027" product-id="24592" />
+  <usb-device vendor-id="1027" product-id="24593" />
+  <usb-device vendor-id="1027" product-id="24596" />
+  <usb-device vendor-id="1027" product-id="24597" />
+  <!-- CP210x (VID:0x10C4=4292) -->
+  <usb-device vendor-id="4292" product-id="60000" />
+  <usb-device vendor-id="4292" product-id="60016" />
+  <!-- PL2303 (VID:0x067B=1659) -->
+  <usb-device vendor-id="1659" product-id="8963" />
+</resources>
+</file>
+
+<file path="lib/providers/settings_notifier.dart">
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class SettingsNotifier extends ChangeNotifier {
+  static const String _sensitivityKey = 'sensitivity';
+  static const String _deadzoneKey = 'deadzone';
+  static const String _vibrationKey = 'vibration';
+  static const String _userScaleKey = 'userScale';
+  static const String _wifiHostKey = 'wifi_host';
+  static const String _wifiPortKey = 'wifi_port';
+
+  static const double _defaultSensitivity = 75.0;
+  static const double _defaultDeadzone = 12.0;
+  static const bool _defaultVibration = true;
+  static const double _defaultUserScale = 1.0;
+  static const String _defaultWifiHost = '192.168.1.100';
+  static const int _defaultWifiPort = 5000;
+
+  late SharedPreferences _prefs;
+  late double _sensitivity;
+  late double _deadzone;
+  late bool _vibration;
+  late double _userScale;
+  late String _wifiHost;
+  late int _wifiPort;
+
+  SettingsNotifier(SharedPreferences prefs) {
+    _prefs = prefs;
+    _loadFromPreferences();
+  }
+
+  void _loadFromPreferences() {
+    _sensitivity = _prefs.getDouble(_sensitivityKey) ?? _defaultSensitivity;
+    _deadzone = _prefs.getDouble(_deadzoneKey) ?? _defaultDeadzone;
+    _vibration = _prefs.getBool(_vibrationKey) ?? _defaultVibration;
+    _userScale = _prefs.getDouble(_userScaleKey) ?? _defaultUserScale;
+    _wifiHost = _prefs.getString(_wifiHostKey) ?? _defaultWifiHost;
+    _wifiPort = _prefs.getInt(_wifiPortKey) ?? _defaultWifiPort;
+  }
+
+  double get sensitivity => _sensitivity;
+  double get deadzone => _deadzone;
+  bool get vibration => _vibration;
+  double get userScale => _userScale;
+  String get wifiHost => _wifiHost;
+  int get wifiPort => _wifiPort;
+
+  Future<void> setSensitivity(double val) async {
+    _sensitivity = val;
+    try {
+      await _prefs.setDouble(_sensitivityKey, val);
+    } catch (e) {
+      print('Error persisting sensitivity: $e');
+      rethrow;
+    }
+    notifyListeners();
+  }
+
+  Future<void> setDeadzone(double val) async {
+    _deadzone = val;
+    try {
+      await _prefs.setDouble(_deadzoneKey, val);
+    } catch (e) {
+      print('Error persisting deadzone: $e');
+      rethrow;
+    }
+    notifyListeners();
+  }
+
+  Future<void> setVibration(bool val) async {
+    _vibration = val;
+    try {
+      await _prefs.setBool(_vibrationKey, val);
+    } catch (e) {
+      print('Error persisting vibration: $e');
+      rethrow;
+    }
+    notifyListeners();
+  }
+
+  Future<void> setUserScale(double val) async {
+    _userScale = val;
+    try {
+      await _prefs.setDouble(_userScaleKey, val);
+    } catch (e) {
+      print('Error persisting user scale: $e');
+      rethrow;
+    }
+    notifyListeners();
+  }
+
+  Future<void> setWifiHost(String val) async {
+    _wifiHost = val;
+    try {
+      await _prefs.setString(_wifiHostKey, val);
+    } catch (e) {
+      print('Error persisting wifi host: $e');
+      rethrow;
+    }
+    notifyListeners();
+  }
+
+  Future<void> setWifiPort(int val) async {
+    _wifiPort = val;
+    try {
+      await _prefs.setInt(_wifiPortKey, val);
+    } catch (e) {
+      print('Error persisting wifi port: $e');
+      rethrow;
+    }
+    notifyListeners();
+  }
+
+  Future<void> reset() async {
+    _sensitivity = _defaultSensitivity;
+    _deadzone = _defaultDeadzone;
+    _vibration = _defaultVibration;
+    _userScale = _defaultUserScale;
+    _wifiHost = _defaultWifiHost;
+    _wifiPort = _defaultWifiPort;
+
+    try {
+      await _prefs.setDouble(_sensitivityKey, _defaultSensitivity);
+      await _prefs.setDouble(_deadzoneKey, _defaultDeadzone);
+      await _prefs.setBool(_vibrationKey, _defaultVibration);
+      await _prefs.setDouble(_userScaleKey, _defaultUserScale);
+      await _prefs.setString(_wifiHostKey, _defaultWifiHost);
+      await _prefs.setInt(_wifiPortKey, _defaultWifiPort);
+    } catch (e) {
+      print('Error resetting settings: $e');
+      rethrow;
+    }
+    notifyListeners();
+  }
+}
+</file>
+
+<file path="lib/widgets/settings_overlay.dart">
+import 'dart:ui';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../models/layout_notifier.dart';
+import '../providers/settings_notifier.dart';
+import '../providers/theme_notifier.dart';
+import '../services/connectivity_service.dart';
+import '../services/gamepad_command.dart';
+import '../theme/app_theme.dart';
+import 'layout_editor_overlay.dart'; // REQUIRED TO OPEN THE EDITOR
+
+class SettingsOverlay extends StatefulWidget {
+  final VoidCallback onOpenLayoutEditor;
+  const SettingsOverlay({super.key, required this.onOpenLayoutEditor});
+
+  @override
+  State<SettingsOverlay> createState() => _SettingsOverlayState();
+}
+
+class _SettingsOverlayState extends State<SettingsOverlay> {
+  // Local state variables for ultra-smooth sliding without disk latency
+  double? _localSensitivity;
+  double? _localDeadzone;
+  double? _localUserScale;
+
+  late TextEditingController _ipController;
+  late TextEditingController _portController;
+
+  @override
+  void initState() {
+    super.initState();
+    final settings = context.read<SettingsNotifier>();
+    _ipController = TextEditingController(text: settings.wifiHost);
+    _portController = TextEditingController(text: settings.wifiPort.toString());
+  }
+
+  @override
+  void dispose() {
+    _ipController.dispose();
+    _portController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildWifiInputs(
+    BuildContext context,
+    SettingsNotifier settings,
+    ConnectivityService network,
+    Color accent,
+  ) {
+    final labelStyle = AppTheme.labelStyle(11, color: AppTheme.kTextSecondary);
+    final inputTextStyle = TextStyle(
+      fontSize: 13,
+      color: AppTheme.kTextPrimary,
+      fontFamily: 'monospace',
+      letterSpacing: 0.4,
+    );
+    final baseBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(6),
+      borderSide: BorderSide(color: AppTheme.kHudBorder),
+    );
+    final focusedBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(6),
+      borderSide: BorderSide(color: accent),
+    );
+    final decoration = InputDecoration(
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      filled: true,
+      fillColor: Colors.black26,
+      border: baseBorder,
+      enabledBorder: baseBorder,
+      focusedBorder: focusedBorder,
+    );
+
+    void saveIp() {
+      final ip = _ipController.text.trim();
+      if (ip.isNotEmpty && ip != settings.wifiHost) settings.setWifiHost(ip);
+    }
+
+    void savePort() {
+      final port = int.tryParse(_portController.text.trim());
+      if (port != null &&
+          port > 0 &&
+          port <= 65535 &&
+          port != settings.wifiPort) {
+        settings.setWifiPort(port);
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('PC IP ADDRESS', style: labelStyle),
+        const SizedBox(height: 4),
+        TextField(
+          controller: _ipController,
+          style: inputTextStyle,
+          decoration: decoration.copyWith(
+            hintText: '192.168.43.x  or  192.168.1.x',
+            hintStyle: TextStyle(
+              fontSize: 12,
+              color: AppTheme.kTextSecondary.withAlpha(90),
+            ),
+            prefixIcon: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Icon(Icons.wifi, size: 14, color: AppTheme.kTextSecondary),
+            ),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
+          ),
+          keyboardType: TextInputType.text,
+          autocorrect: false,
+          enableSuggestions: false,
+          onSubmitted: (_) => saveIp(),
+          onEditingComplete: () {
+            saveIp();
+            FocusScope.of(context).unfocus();
+          },
+        ),
+        const SizedBox(height: 10),
+        Text('PORT', style: labelStyle),
+        const SizedBox(height: 4),
+        TextField(
+          controller: _portController,
+          style: inputTextStyle,
+          decoration: decoration.copyWith(
+            hintText: '5000',
+            hintStyle: TextStyle(
+              fontSize: 12,
+              color: AppTheme.kTextSecondary.withAlpha(90),
+            ),
+          ),
+          keyboardType: TextInputType.number,
+          onSubmitted: (_) => savePort(),
+          onEditingComplete: () {
+            savePort();
+            FocusScope.of(context).unfocus();
+          },
+        ),
+        const SizedBox(height: 8),
+        // Status line
+        Row(
+          children: [
+            Icon(
+              network.isConnected
+                  ? Icons.check_circle_outline
+                  : Icons.info_outline,
+              size: 12,
+              color: network.isConnected
+                  ? Colors.greenAccent
+                  : AppTheme.kTextSecondary.withAlpha(150),
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                network.isConnected
+                    ? 'Connected → ${settings.wifiHost}:${settings.wifiPort}'
+                    : 'Enter the IP shown by ipconfig on your PC',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: network.isConnected
+                      ? Colors.greenAccent.withAlpha(200)
+                      : AppTheme.kTextSecondary.withAlpha(150),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+    final settings = context.watch<SettingsNotifier>();
+    final layout = context.watch<LayoutNotifier>();
+    final network = context.watch<ConnectivityService>();
+    final accent = theme.accentColor;
+
+    // Sync local state with the provider on initial load
+    _localSensitivity ??= settings.sensitivity;
+    _localDeadzone ??= settings.deadzone;
+    _localUserScale ??= settings.userScale;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final panelWidth = (w * 0.45 > 420) ? 420.0 : w * 0.45;
+
+        return Material(
+          color: Colors.transparent,
+          child: Container(
+            width: panelWidth,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: AppTheme.kHudSurface.withAlpha(240),
+              border: const Border(
+                left: BorderSide(color: AppTheme.kHudBorder),
+              ),
+            ),
+            child: ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      _buildHeader(context, settings, accent),
+                      const Divider(color: AppTheme.kHudBorder, height: 1),
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          children: [
+                            _buildSectionTitle('INPUT', accent),
+                            _buildSliderRow(
+                              'SENSITIVITY',
+                              _localSensitivity!,
+                              0,
+                              100,
+                              accent,
+                              onLocalChange: (v) => _localSensitivity = v,
+                              onSaveToDisk: (v) => settings.setSensitivity(v),
+                            ),
+                            _buildSliderRow(
+                              'DEADZONE',
+                              _localDeadzone!,
+                              0,
+                              30,
+                              accent,
+                              onLocalChange: (v) => _localDeadzone = v,
+                              onSaveToDisk: (v) => settings.setDeadzone(v),
+                            ),
+                            _buildSwitchRow(
+                              'VIBRATION',
+                              settings.vibration,
+                              accent,
+                              (v) => settings.setVibration(v),
+                            ),
+                            const SizedBox(height: 24),
+
+                            _buildSectionTitle('LAYOUT', accent),
+                            _buildSegmentedControl<bool>(
+                              value: layout.isXbox,
+                              options: const {
+                                true: 'XBOX',
+                                false: 'PLAYSTATION',
+                              },
+                              accent: accent,
+                              onChanged: (v) {
+                                if (v != layout.isXbox) {
+                                  layout.toggleLayout();
+                                  // isXbox has already flipped, so read the new value
+                                  final newProfile = layout.isXbox
+                                      ? 'xbox360'
+                                      : 'ds4';
+                                  context
+                                      .read<ConnectivityService>()
+                                      .sendCommand(
+                                        GamepadCommandFactory.setProfile(
+                                          newProfile,
+                                        ),
+                                      );
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            _buildSliderRow(
+                              'BUTTON SIZE',
+                              _localUserScale!,
+                              0.7,
+                              1.4,
+                              accent,
+                              isPercentage: true,
+                              onLocalChange: (v) => _localUserScale = v,
+                              onSaveToDisk: (v) => settings.setUserScale(v),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildActionButton('EDIT LAYOUT', accent, () {
+                              Navigator.of(context).pop();
+                              widget.onOpenLayoutEditor(); // Close settings
+                            }),
+                            const SizedBox(height: 24),
+
+                            _buildSectionTitle('CONNECTION', accent),
+                            // REPLACE WITH THIS:
+                            if (network.activeMode == ActiveMode.wifi) ...[
+                              const SizedBox(height: 4),
+                              _buildWifiInputs(
+                                context,
+                                settings,
+                                network,
+                                accent,
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                            _buildSegmentedControl<ActiveMode>(
+                              value: network.activeMode,
+                              options: const {
+                                ActiveMode.bluetooth: 'BT',
+                                ActiveMode.wifi: 'WIFI',
+                                ActiveMode.usb: 'USB',
+                              },
+                              accent: accent,
+                              onChanged: (v) => network.setMode(v),
+                            ),
+                            const SizedBox(height: 24),
+                            // Connect / Disconnect button
+                            // REPLACE the CONNECT button's onPressed:
+                            _buildActionButton(
+                              network.isConnected ? 'DISCONNECT' : 'CONNECT',
+                              network.isConnected ? Colors.redAccent : accent,
+                              () async {
+                                if (network.isConnected) {
+                                  await network.disconnect();
+                                } else {
+                                  // Flush any un-submitted text field values before connecting.
+                                  // (User may have typed an IP without pressing the keyboard's Done key.)
+                                  final newIp = _ipController.text.trim();
+                                  final newPort = int.tryParse(
+                                    _portController.text.trim(),
+                                  );
+                                  if (newIp.isNotEmpty &&
+                                      newIp != settings.wifiHost) {
+                                    await settings.setWifiHost(newIp);
+                                  }
+                                  if (newPort != null &&
+                                      newPort > 0 &&
+                                      newPort <= 65535 &&
+                                      newPort != settings.wifiPort) {
+                                    await settings.setWifiPort(newPort);
+                                  }
+                                  await network.connect();
+                                }
+                              },
+                            ),
+
+                            // Connection status text
+                            const SizedBox(height: 8),
+                            Text(
+                              network.statusMessage,
+                              textAlign: TextAlign.center,
+                              style: AppTheme.labelStyle(
+                                11,
+                                color: AppTheme.kTextSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+
+                            _buildSectionTitle('APPEARANCE', accent),
+                            _buildColorPicker(theme),
+                            const SizedBox(height: 32),
+                          ],
+                        ),
+                      ),
+                      _buildFooter(context, accent),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader(
+    BuildContext context,
+    SettingsNotifier settings,
+    Color accent,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Icon(Icons.flash_on, color: accent),
+          const SizedBox(width: 8),
+          Text('SETTINGS', style: AppTheme.labelStyle(20)),
+          const Spacer(),
+          TextButton(
+            onPressed: () {
+              settings.reset();
+              setState(() {
+                _localSensitivity = 75.0;
+                _localDeadzone = 12.0;
+                _localUserScale = 1.0;
+              });
+            },
+            child: Text(
+              'RESET',
+              style: AppTheme.labelStyle(14, color: AppTheme.kTextSecondary),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: AppTheme.kTextSecondary),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, Color accent) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        title,
+        style: AppTheme.labelStyle(14, color: AppTheme.kTextSecondary),
+      ),
+    );
+  }
+
+  Widget _buildSliderRow(
+    String label,
+    double value,
+    double min,
+    double max,
+    Color accent, {
+    bool isPercentage = false,
+    required Function(double) onLocalChange,
+    required Function(double) onSaveToDisk,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3, // Safely expands instead of hardcoding 90px
+            child: Text(label, style: AppTheme.labelStyle(12)),
+          ),
+          Expanded(
+            flex: 5,
+            child: SliderTheme(
+              data: SliderThemeData(
+                activeTrackColor: accent,
+                inactiveTrackColor: Colors.white12,
+                thumbColor: accent,
+                overlayColor: accent.withAlpha(50),
+                trackHeight: 4,
+              ),
+              child: Slider(
+                value: value,
+                min: min,
+                max: max,
+                onChanged: (val) {
+                  setState(() {
+                    onLocalChange(val);
+                  });
+                },
+                onChangeEnd: (val) {
+                  onSaveToDisk(val);
+                },
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              isPercentage
+                  ? '${(value * 100).toInt()}%'
+                  : value.toInt().toString(),
+              textAlign: TextAlign.right,
+              style: AppTheme.labelStyle(14, color: accent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchRow(
+    String label,
+    bool value,
+    Color accent,
+    Function(bool) onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTheme.labelStyle(12)),
+          CupertinoSwitch(
+            value: value,
+            activeColor: accent,
+            trackColor: Colors.white12,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSegmentedControl<T>({
+    required T value,
+    required Map<T, String> options,
+    required Color accent,
+    required Function(T) onChanged,
+  }) {
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.black38,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.kHudBorder),
+      ),
+      child: Row(
+        children: options.entries.map((entry) {
+          final isSelected = value == entry.key;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(entry.key),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected ? accent.withAlpha(50) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(7),
+                  border: isSelected ? Border.all(color: accent) : null,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  entry.value,
+                  style: AppTheme.labelStyle(
+                    14,
+                    color: isSelected ? accent : AppTheme.kTextSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String label, Color accent, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.black38,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: accent.withAlpha(100)),
+        ),
+        alignment: Alignment.center,
+        child: Text(label, style: AppTheme.labelStyle(14, color: accent)),
+      ),
+    );
+  }
+
+  Widget _buildColorPicker(ThemeNotifier theme) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      alignment: WrapAlignment.spaceBetween,
+      children: theme.accentOptions.map((color) {
+        final isSelected = theme.accentColor == color;
+        return GestureDetector(
+          onTap: () => theme.setAccent(color),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: isSelected
+                  ? Border.all(color: Colors.white, width: 3)
+                  : null,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: color.withAlpha(150),
+                        blurRadius: 12,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : [],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildFooter(BuildContext context, Color accent) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        width: double.infinity,
+        height: 48,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: accent.withAlpha(50),
+            foregroundColor: accent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: accent),
+            ),
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('DONE', style: AppTheme.labelStyle(16, color: accent)),
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/widgets/shoulder_buttons.dart">
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/theme_notifier.dart';
+import '../theme/app_theme.dart';
+
+/// Base class to handle strict Multitouch and properly dispose ValueNotifiers
+class _BaseShoulderButton extends StatefulWidget {
+  final String id;
+  final String label;
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+
+  const _BaseShoulderButton({
+    super.key,
+    required this.id,
+    required this.label,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+  });
+
+  @override
+  State<_BaseShoulderButton> createState() => _BaseShoulderButtonState();
+}
+
+class _BaseShoulderButtonState extends State<_BaseShoulderButton> {
+  late final ValueNotifier<bool> _isPressed;
+
+  @override
+  void initState() {
+    super.initState();
+    _isPressed = ValueNotifier(false);
+  }
+
+  @override
+  void dispose() {
+    _isPressed.dispose();
+    super.dispose();
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    HapticFeedback.lightImpact();
+    _isPressed.value = true;
+    widget.onSignal(widget.id, true);
+  }
+
+  void _handlePointerUpOrCancel(PointerEvent event) {
+    _isPressed.value = false;
+    widget.onSignal(widget.id, false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+    final accent = theme.accentColor;
+
+    return Listener(
+      onPointerDown: _handlePointerDown,
+      onPointerUp: _handlePointerUpOrCancel,
+      onPointerCancel: _handlePointerUpOrCancel,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isPressed,
+        builder: (context, pressed, child) {
+          return AnimatedScale(
+            scale: pressed ? 0.92 : 1.0,
+            duration: const Duration(milliseconds: 50),
+            child: RepaintBoundary(
+              child: Container(
+                width: widget.width,
+                height: widget.height,
+                decoration: BoxDecoration(
+                  color: AppTheme.kHudSurface,
+                  borderRadius: BorderRadius.circular(widget.width * 0.5),
+                  border: Border.all(
+                    color: pressed ? accent : AppTheme.kHudBorder,
+                    width: 2,
+                  ),
+                  boxShadow: pressed
+                      ? [
+                          BoxShadow(
+                            color: accent.withAlpha(140),
+                            blurRadius: 14,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  widget.label,
+                  style: AppTheme.labelStyle(
+                    // Scales text relative to the button's height
+                    widget.height * 0.35,
+                    color: pressed ? accent : AppTheme.kTextSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Specific Implementations
+// -----------------------------------------------------------------------------
+
+class LTButton extends StatefulWidget {
+  final bool isXbox;
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+  final void Function(String id, double value)? onAxis;
+
+  const LTButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    this.onAxis,
+    required this.isXbox,
+  });
+
+  @override
+  State<LTButton> createState() => _LTButtonState();
+}
+
+class _LTButtonState extends State<LTButton> {
+  late final ValueNotifier<bool> _isPressed;
+  double _lastSent = 0.0;
+  final String _id = 'ABS_Z';
+
+  @override
+  void initState() {
+    super.initState();
+    _isPressed = ValueNotifier(false);
+  }
+
+  @override
+  void dispose() {
+    _isPressed.dispose();
+    super.dispose();
+  }
+
+  void _updatePressureFromEvent(PointerEvent e) {
+    final localY = e.localPosition.dy.clamp(0.0, widget.height);
+    final pressure = (localY / widget.height).clamp(0.0, 1.0);
+    if ((pressure - _lastSent).abs() >= 0.01) {
+      widget.onAxis?.call(_id, pressure);
+      _lastSent = pressure;
+    }
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    HapticFeedback.lightImpact();
+    _isPressed.value = true;
+    widget.onSignal(_id, true);
+    _updatePressureFromEvent(event);
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    _updatePressureFromEvent(event);
+  }
+
+  void _handlePointerUpOrCancel(PointerEvent event) {
+    _isPressed.value = false;
+    widget.onSignal(_id, false);
+    widget.onAxis?.call(_id, 0.0);
+    _lastSent = 0.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+    final accent = theme.accentColor;
+
+    return Listener(
+      onPointerDown: _handlePointerDown,
+      onPointerMove: _handlePointerMove,
+      onPointerUp: _handlePointerUpOrCancel,
+      onPointerCancel: _handlePointerUpOrCancel,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isPressed,
+        builder: (context, pressed, child) {
+          return AnimatedScale(
+            scale: pressed ? 0.92 : 1.0,
+            duration: const Duration(milliseconds: 50),
+            child: RepaintBoundary(
+              child: Container(
+                width: widget.width,
+                height: widget.height,
+                decoration: BoxDecoration(
+                  color: AppTheme.kHudSurface,
+                  borderRadius: BorderRadius.circular(widget.width * 0.5),
+                  border: Border.all(
+                    color: pressed ? accent : AppTheme.kHudBorder,
+                    width: 2,
+                  ),
+                  boxShadow: pressed
+                      ? [
+                          BoxShadow(
+                            color: accent.withAlpha(140),
+                            blurRadius: 14,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  widget.isXbox ? 'LT' : 'L2',
+                  style: AppTheme.labelStyle(
+                    widget.height * 0.35,
+                    color: pressed ? accent : AppTheme.kTextSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class RTButton extends StatefulWidget {
+  final bool isXbox;
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+  final void Function(String id, double value)? onAxis;
+
+  const RTButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    this.onAxis,
+    required this.isXbox,
+  });
+
+  @override
+  State<RTButton> createState() => _RTButtonState();
+}
+
+class _RTButtonState extends State<RTButton> {
+  late final ValueNotifier<bool> _isPressed;
+  double _lastSent = 0.0;
+  final String _id = 'ABS_RZ';
+
+  @override
+  void initState() {
+    super.initState();
+    _isPressed = ValueNotifier(false);
+  }
+
+  @override
+  void dispose() {
+    _isPressed.dispose();
+    super.dispose();
+  }
+
+  void _updatePressureFromEvent(PointerEvent e) {
+    final localY = e.localPosition.dy.clamp(0.0, widget.height);
+    final pressure = (localY / widget.height).clamp(0.0, 1.0);
+    if ((pressure - _lastSent).abs() >= 0.01) {
+      widget.onAxis?.call(_id, pressure);
+      _lastSent = pressure;
+    }
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    HapticFeedback.lightImpact();
+    _isPressed.value = true;
+    widget.onSignal(_id, true);
+    _updatePressureFromEvent(event);
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    _updatePressureFromEvent(event);
+  }
+
+  void _handlePointerUpOrCancel(PointerEvent event) {
+    _isPressed.value = false;
+    widget.onSignal(_id, false);
+    widget.onAxis?.call(_id, 0.0);
+    _lastSent = 0.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+    final accent = theme.accentColor;
+
+    return Listener(
+      onPointerDown: _handlePointerDown,
+      onPointerMove: _handlePointerMove,
+      onPointerUp: _handlePointerUpOrCancel,
+      onPointerCancel: _handlePointerUpOrCancel,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isPressed,
+        builder: (context, pressed, child) {
+          return AnimatedScale(
+            scale: pressed ? 0.92 : 1.0,
+            duration: const Duration(milliseconds: 50),
+            child: RepaintBoundary(
+              child: Container(
+                width: widget.width,
+                height: widget.height,
+                decoration: BoxDecoration(
+                  color: AppTheme.kHudSurface,
+                  borderRadius: BorderRadius.circular(widget.width * 0.5),
+                  border: Border.all(
+                    color: pressed ? accent : AppTheme.kHudBorder,
+                    width: 2,
+                  ),
+                  boxShadow: pressed
+                      ? [
+                          BoxShadow(
+                            color: accent.withAlpha(140),
+                            blurRadius: 14,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  widget.isXbox ? 'RT' : 'R2',
+                  style: AppTheme.labelStyle(
+                    widget.height * 0.35,
+                    color: pressed ? accent : AppTheme.kTextSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class LBButton extends StatelessWidget {
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+  final bool isXbox;
+
+  const LBButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    required this.isXbox,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _BaseShoulderButton(
+      key: key,
+      id: 'BTN_TL',
+      label: isXbox ? 'LB' : 'L1',
+      width: width,
+      height: height,
+      onSignal: onSignal,
+    );
+  }
+}
+
+class RBButton extends StatelessWidget {
+  final bool isXbox;
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+
+  const RBButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    required this.isXbox,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _BaseShoulderButton(
+      key: key,
+      id: 'BTN_TR',
+      label: isXbox ? 'RB' : 'R1',
+      width: width,
+      height: height,
+      onSignal: onSignal,
+    );
+  }
+}
+</file>
+
+<file path="linux/flutter/generated_plugins.cmake">
+#
+# Generated file, do not edit.
+#
+
+list(APPEND FLUTTER_PLUGIN_LIST
+)
+
+list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  jni
+)
+
+set(PLUGIN_BUNDLED_LIBRARIES)
+
+foreach(plugin ${FLUTTER_PLUGIN_LIST})
+  add_subdirectory(flutter/ephemeral/.plugin_symlinks/${plugin}/linux plugins/${plugin})
+  target_link_libraries(${BINARY_NAME} PRIVATE ${plugin}_plugin)
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES $<TARGET_FILE:${plugin}_plugin>)
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${plugin}_bundled_libraries})
+endforeach(plugin)
+
+foreach(ffi_plugin ${FLUTTER_FFI_PLUGIN_LIST})
+  add_subdirectory(flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/linux plugins/${ffi_plugin})
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${ffi_plugin}_bundled_libraries})
+endforeach(ffi_plugin)
+</file>
+
+<file path="test/widget_test.dart">
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility in the flutter_test package. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:gamepad_app/main.dart';
+
+void main() {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    // Set up a mock SharedPreferences for testing
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(GamepadApp(prefs: prefs));
+
+    // Verify that our counter starts at 0.
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+
+    // Tap the '+' icon and trigger a frame.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+
+    // Verify that our counter has incremented.
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
+  });
+}
+</file>
+
+<file path="windows/flutter/generated_plugin_registrant.cc">
+//
+//  Generated file. Do not edit.
+//
+
+// clang-format off
+
+#include "generated_plugin_registrant.h"
+
+#include <permission_handler_windows/permission_handler_windows_plugin.h>
+
+void RegisterPlugins(flutter::PluginRegistry* registry) {
+  PermissionHandlerWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
+}
+</file>
+
 <file path="lib/main.dart">
 import 'dart:io';
 
@@ -7996,10 +8374,51 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LayoutNotifier extends ChangeNotifier {
   final SharedPreferences _prefs;
 
+  // Xbox defaults — (left_fraction, top_fraction) of each widget's top-left corner
+  static const Map<String, Offset> _xboxDefaults = {
+    'lt': Offset(0.15, 0.02),
+    'lb': Offset(0.23, 0.02),
+    'rt': Offset(0.61, 0.02),
+    'rb': Offset(0.69, 0.02),
+    'l_stick': Offset(0.05, 0.28),
+    'dpad': Offset(0.18, 0.67),
+    'buttons': Offset(0.53, 0.28),
+    'r_stick': Offset(0.64, 0.67),
+    'center': Offset(0.35, 0.72),
+  };
+
+  static const Map<String, Offset> _psDefaults = {
+    'lt': Offset(0.15, 0.02),
+    'lb': Offset(0.23, 0.02),
+    'rt': Offset(0.61, 0.02),
+    'rb': Offset(0.69, 0.02),
+    'l_stick': Offset(0.18, 0.67), // PS: stick bottom-left
+    'dpad': Offset(0.05, 0.28), // PS: dpad top-left
+    'buttons': Offset(0.53, 0.28),
+    'r_stick': Offset(0.64, 0.67),
+    'center': Offset(0.35, 0.72),
+  };
+
+  late bool _isXbox;
+  late Map<String, Offset> _positions;
+  bool _isEditing = false;
+
+  final Map<String, bool> _visibility = {
+    'dpad': true,
+    'l_stick': true,
+    'buttons': true,
+    'r_stick': true,
+    'lt': true,
+    'lb': true,
+    'rt': true,
+    'rb': true,
+    'select': true,
+    'start': true,
+  };
+
   LayoutNotifier(this._prefs) {
     _isXbox = _prefs.getBool('isXbox') ?? true;
-    _leftZone = _prefs.getStringList('leftZone') ?? ['l_stick', 'dpad'];
-    _rightZone = _prefs.getStringList('rightZone') ?? ['buttons', 'r_stick'];
+    _positions = _loadPositions();
 
     // Parse visibility settings
     final visList = _prefs.getStringList('visibility') ?? [];
@@ -8013,78 +8432,280 @@ class LayoutNotifier extends ChangeNotifier {
     }
   }
 
-  late bool _isXbox;
-  late List<String> _leftZone;
-  late List<String> _rightZone;
-  final Map<String, bool> _visibility = {
-    'dpad': true, 'l_stick': true, 'buttons': true, 'r_stick': true,
-    'lt': true, 'lb': true, 'rt': true, 'rb': true,
-    'select': true, 'start': true
-  };
-
   bool get isXbox => _isXbox;
-  List<String> get leftZone => _leftZone;
-  List<String> get rightZone => _rightZone;
+  bool get isEditing => _isEditing;
   bool isVisible(String key) => _visibility[key] ?? true;
+
+  Offset getPos(String key) =>
+      _positions[key] ?? (_isXbox ? _xboxDefaults[key]! : _psDefaults[key]!);
 
   void toggleLayout() {
     _isXbox = !_isXbox;
+    // Reset positions to canonical defaults for the new layout
+    _positions = Map.of(_isXbox ? _xboxDefaults : _psDefaults);
+    _savePositions();
     _prefs.setBool('isXbox', _isXbox);
     notifyListeners();
   }
 
-  void updateLeftZone(int oldIndex, int newIndex) {
-    if (oldIndex < newIndex) newIndex -= 1;
-    final item = _leftZone.removeAt(oldIndex);
-    _leftZone.insert(newIndex, item);
-    _prefs.setStringList('leftZone', _leftZone);
+  void updatePosition(String key, Offset fractionOffset) {
+    // Clamp to prevent widgets from going off-screen
+    _positions[key] = Offset(
+      fractionOffset.dx.clamp(0.0, 0.9),
+      fractionOffset.dy.clamp(0.0, 0.9),
+    );
+    _savePositions();
     notifyListeners();
   }
 
-  void updateRightZone(int oldIndex, int newIndex) {
-    if (oldIndex < newIndex) newIndex -= 1;
-    final item = _rightZone.removeAt(oldIndex);
-    _rightZone.insert(newIndex, item);
-    _prefs.setStringList('rightZone', _rightZone);
+  void toggleEditing() {
+    _isEditing = !_isEditing;
+    notifyListeners();
+  }
+
+  void resetPositions() {
+    _positions = Map.of(_isXbox ? _xboxDefaults : _psDefaults);
+    _savePositions();
     notifyListeners();
   }
 
   void toggleVisibility(String key) {
     _visibility[key] = !(_visibility[key] ?? true);
     _prefs.setStringList(
-        'visibility',
-        _visibility.entries.map((e) => '${e.key}:${e.value}').toList()
+      'visibility',
+      _visibility.entries.map((e) => '${e.key}:${e.value}').toList(),
     );
     notifyListeners();
+  }
+
+  void setEditing(bool val) {
+    _isEditing = val;
+    notifyListeners();
+  }
+
+  // Persist: store each key as 'pos_KEY_x' and 'pos_KEY_y'
+  Map<String, Offset> _loadPositions() {
+    final defaults = _isXbox ? _xboxDefaults : _psDefaults;
+    final result = <String, Offset>{};
+    for (final key in defaults.keys) {
+      final x = _prefs.getDouble('pos_${key}_x') ?? defaults[key]!.dx;
+      final y = _prefs.getDouble('pos_${key}_y') ?? defaults[key]!.dy;
+      result[key] = Offset(x, y);
+    }
+    return result;
+  }
+
+  void _savePositions() {
+    for (final entry in _positions.entries) {
+      _prefs.setDouble('pos_${entry.key}_x', entry.value.dx);
+      _prefs.setDouble('pos_${entry.key}_y', entry.value.dy);
+    }
   }
 }
 </file>
 
-<file path="linux/flutter/generated_plugins.cmake">
-#
-# Generated file, do not edit.
-#
+<file path="lib/services/gamepad_command.dart">
+// lib/services/gamepad_command.dart
+//
+// Immutable value-object that carries one virtual gamepad event and knows
+// how to serialise itself for every transport channel.
 
-list(APPEND FLUTTER_PLUGIN_LIST
-)
+import 'dart:typed_data';
 
-list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  jni
-)
+import 'package:flutter/foundation.dart'; // @immutable
 
-set(PLUGIN_BUNDLED_LIBRARIES)
+// ─────────────────────────────────────────────────────────────────────────────
+// Command type taxonomy
+// ─────────────────────────────────────────────────────────────────────────────
 
-foreach(plugin ${FLUTTER_PLUGIN_LIST})
-  add_subdirectory(flutter/ephemeral/.plugin_symlinks/${plugin}/linux plugins/${plugin})
-  target_link_libraries(${BINARY_NAME} PRIVATE ${plugin}_plugin)
-  list(APPEND PLUGIN_BUNDLED_LIBRARIES $<TARGET_FILE:${plugin}_plugin>)
-  list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${plugin}_bundled_libraries})
-endforeach(plugin)
+/// Coarse category of a gamepad input event.
+enum CommandType {
+  button, // digital: A / B / X / Y / shoulder / start / select …
+  axis,   // analogue stick axis: LS_X, LS_Y, RS_X, RS_Y, LT, RT
+  dpad,   // 8-way hat switch: up / down / left / right / diagonals
+  rumble, // force-feedback intensity command
+  system,
+}
 
-foreach(ffi_plugin ${FLUTTER_FFI_PLUGIN_LIST})
-  add_subdirectory(flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/linux plugins/${ffi_plugin})
-  list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${ffi_plugin}_bundled_libraries})
-endforeach(ffi_plugin)
+// ─────────────────────────────────────────────────────────────────────────────
+// Wire-format constants (keep in sync with host-side decoder)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// USB/BLE frame header byte marking the start of every packet.
+const int kFrameHeader = 0xAA;
+
+/// USB/BLE frame footer / end-of-packet sentinel.
+const int kFrameFooter = 0x55;
+
+/// Protocol version embedded in every packet.
+const int kProtoVersion = 0x01;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GamepadCommand
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A single input event emitted by the virtual gamepad UI layer.
+///
+/// ### Value ranges
+/// | [type]          | [value]                                  |
+/// |-----------------|------------------------------------------|
+/// | [CommandType.button] | 0 = released, 1 = pressed           |
+/// | [CommandType.axis]   | −32 768 … 32 767 (signed 16-bit)    |
+/// | [CommandType.dpad]   | 0–7 clockwise from North, 8 = centre |
+/// | [CommandType.rumble] | 0 (off) … 255 (max)                  |
+@immutable
+class GamepadCommand {
+  const GamepadCommand({
+    required this.type,
+    required this.id,
+    this.value = 0,
+    DateTime? timestamp,
+  }) : _timestamp = timestamp;
+
+  /// What kind of input this is.
+  final CommandType type;
+
+  /// Human-readable identifier matching the UI widget label.
+  /// Examples: `'A'`, `'B'`, `'LT'`, `'LS_X'`, `'DPAD'`, `'RUMBLE_L'`.
+  final String id;
+
+  /// Payload value (range depends on [type] — see class doc).
+  final int value;
+
+  final DateTime? _timestamp;
+
+  /// Wall-clock timestamp of this event (defaults to now on first access).
+  DateTime get timestamp => _timestamp ?? DateTime.now();
+
+  // ── Wi-Fi / TCP serialiser ──────────────────────────────────────────────────
+
+  /// Newline-delimited JSON frame sent over the TCP socket.
+  ///
+  /// ```json
+  /// {"v":1,"type":"button","id":"A","value":1,"ts":1718123456789}
+  /// ```
+  String toJsonFrame() {
+    final map = <String, dynamic>{
+      'v': kProtoVersion,
+      'type': type.name,
+      'id': id,
+      'value': value,
+      'ts': timestamp.millisecondsSinceEpoch,
+    };
+    // Manual encoding avoids a hard dependency on dart:convert at model level.
+    // If you already import dart:convert elsewhere, replace with jsonEncode(map).
+    final parts = map.entries
+        .map((e) => '"${e.key}":${e.value is String ? '"${e.value}"' : e.value}')
+        .join(',');
+    return '{$parts}\n';
+  }
+
+  // ── USB / Serial serialiser ─────────────────────────────────────────────────
+
+  /// Compact 8-byte binary frame for USB serial transport.
+  ///
+  /// ```
+  /// Byte  0    : 0xAA  – frame header
+  /// Byte  1    : 0x01  – protocol version
+  /// Byte  2    : type  – CommandType ordinal (0–3)
+  /// Byte  3    : id[0] – first ASCII byte of [id]
+  /// Byte  4    : id[1] – second ASCII byte (or 0x00 for single-char IDs)
+  /// Byte  5    : MSB   – value >> 8
+  /// Byte  6    : LSB   – value & 0xFF
+  /// Byte  7    : 0x55  – frame footer / end-of-packet sentinel
+  /// ```
+  Uint8List toUsbBytes() {
+    final clamped = value.clamp(-32768, 32767);
+    final msb = (clamped >> 8) & 0xFF;
+    final lsb = clamped & 0xFF;
+
+    final idB0 = id.isNotEmpty ? id.codeUnitAt(0) & 0xFF : 0x00;
+    final idB1 = id.length > 1 ? id.codeUnitAt(1) & 0xFF : 0x00;
+
+    return Uint8List.fromList([
+      kFrameHeader,       // 0xAA
+      kProtoVersion,      // 0x01
+      type.index,         // 0-3
+      idB0,               // id byte 0
+      idB1,               // id byte 1
+      msb,                // value MSB
+      lsb,                // value LSB
+      kFrameFooter,       // 0x55
+    ]);
+  }
+
+  // ── Bluetooth / BLE serialiser ──────────────────────────────────────────────
+
+  /// BLE characteristic write payload.
+  ///
+  /// Identical wire format to [toUsbBytes] so the host-side decoder is shared.
+  /// Use `withoutResponse: true` on non-critical button events for throughput;
+  /// flip to `false` for rumble / config commands that need a GATT ACK.
+  Uint8List toBleBytes() => toUsbBytes();
+
+  // ── Debug ───────────────────────────────────────────────────────────────────
+
+  @override
+  String toString() =>
+      'GamepadCommand(type:${type.name}, id:$id, value:$value, '
+          'ts:${timestamp.millisecondsSinceEpoch})';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is GamepadCommand &&
+              other.type == type &&
+              other.id == id &&
+              other.value == value;
+
+  @override
+  int get hashCode => Object.hash(type, id, value);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Convenience constructors (factory helpers used by the UI layer)
+// ─────────────────────────────────────────────────────────────────────────────
+
+extension GamepadCommandFactory on GamepadCommand {
+  /// Shorthand for a digital button press (value = 1).
+  static GamepadCommand buttonDown(String id) =>
+      GamepadCommand(type: CommandType.button, id: id, value: 1);
+
+  /// Shorthand for a digital button release (value = 0).
+  static GamepadCommand buttonUp(String id) =>
+      GamepadCommand(type: CommandType.button, id: id, value: 0);
+
+  /// Shorthand for an analogue axis update.
+  static GamepadCommand axis(String id, int value) =>
+      GamepadCommand(type: CommandType.axis, id: id, value: value);
+
+  /// Shorthand for a D-pad direction (0-7 clockwise from North, 8 = centre).
+  static GamepadCommand dpad(int direction) =>
+      GamepadCommand(type: CommandType.dpad, id: 'DPAD', value: direction);
+
+  /// Shorthand for a rumble intensity command (0–255).
+  static GamepadCommand rumble({required int left, required int right}) =>
+      GamepadCommand(
+          type: CommandType.rumble,
+          id: 'RUMBLE',
+          value: (left.clamp(0, 15) << 4) | right.clamp(0, 15));
+
+  static GamepadCommand setProfile(String profileId) {
+    return GamepadCommand(
+      type: CommandType.system,
+      id: 'SET_PROFILE',
+      value: profileId == 'xbox360' ? 0 : 1,  // 0 = Xbox 360, 1 = DS4
+    );
+  }
+
+  /// High-precision analog axis update (-1.0 to 1.0).
+  static GamepadCommand axisUpdate(String id, double value) {
+    // TODO: implement UDP axis encoding
+    // Temporarily map to the existing 16-bit signed integer format so the compiler passes
+    final int clamped16Bit = (value * 32767).clamp(-32768, 32767).toInt();
+    return GamepadCommand(type: CommandType.axis, id: id, value: clamped16Bit);
+  }
+}
 </file>
 
 <file path="pubspec.lock">
@@ -8735,44 +9356,6 @@ flutter:
   uses-material-design: true
 </file>
 
-<file path="test/widget_test.dart">
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:gamepad_app/main.dart';
-
-void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Set up a mock SharedPreferences for testing
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(GamepadApp(prefs: prefs));
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
-}
-</file>
-
 <file path="windows/flutter/generated_plugins.cmake">
 #
 # Generated file, do not edit.
@@ -8814,6 +9397,7 @@ import '../theme/app_theme.dart';
 import '../widgets/xbox_layout.dart';
 import '../widgets/ps_layout.dart';
 import '../widgets/settings_overlay.dart';
+import '../widgets/layout_editor_overlay.dart';
 
 class GamepadScreen extends StatefulWidget {
   const GamepadScreen({super.key});
@@ -8824,11 +9408,14 @@ class GamepadScreen extends StatefulWidget {
 
 class _GamepadScreenState extends State<GamepadScreen>
     with WidgetsBindingObserver {
+  bool _showLayoutEditor = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
+
+  void _openLayoutEditor() => setState(() => _showLayoutEditor = true);
 
   @override
   void dispose() {
@@ -8868,9 +9455,11 @@ class _GamepadScreenState extends State<GamepadScreen>
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 280),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return const Align(
+        return  Align(
           alignment: Alignment.centerRight,
-          child: SettingsOverlay(),
+          child: SettingsOverlay(
+            onOpenLayoutEditor: _openLayoutEditor, 
+          ),
         );
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -8970,6 +9559,13 @@ class _GamepadScreenState extends State<GamepadScreen>
                   left: w * 0.04,
                   child: _buildStatusBar(networkService, h),
                 ),
+                // 4. Layout Editor Overlay — must be Stack child, NOT Navigator.push
+                if (_showLayoutEditor)
+                  Positioned.fill(
+                    child: LayoutEditorOverlay(
+                      onClose: () => setState(() => _showLayoutEditor = false),
+                    ),
+                  ),
 
                 // The old Settings Gear has been completely deleted!
               ],
@@ -9279,6 +9875,10 @@ class ConnectivityService extends ChangeNotifier {
   /// How long to wait for an mDNS response before falling back to the
   /// stored host/port.
   static const Duration _mdnsScanTimeout = Duration(seconds: 4);
+  static const bool _mdnsEnabled = false;
+
+  static const int _udpDiscoveryPort = 5354;
+  static const Duration _udpDiscoveryTimeout = Duration(seconds: 5);
 
   // ── State ──────────────────────────────────────────────────────────────────
 
@@ -9344,9 +9944,61 @@ class ConnectivityService extends ChangeNotifier {
     }
   }
 
+  Future<void> _tryUdpDiscovery() async {
+    _record('UDP: listening for BeastReceiver on port $_udpDiscoveryPort…');
+    RawDatagramSocket? socket;
+    try {
+      socket = await RawDatagramSocket.bind(
+        InternetAddress.anyIPv4,
+        _udpDiscoveryPort,
+      );
+
+      final datagram = await socket
+          .where((event) => event == RawSocketEvent.read)
+          .map((_) => socket!.receive())
+          .where((dg) => dg != null)
+          .first
+          .timeout(_udpDiscoveryTimeout);
+
+      // Server IP comes directly from the UDP source address — no parsing required.
+      final serverIp = datagram!.address.address;
+
+      // Optionally validate the payload and read port.
+      int? serverPort;
+      try {
+        final json =
+            jsonDecode(utf8.decode(datagram.data)) as Map<String, dynamic>;
+        if (json['service'] == 'ctrlforge') serverPort = json['port'] as int?;
+      } catch (_) {
+        // Malformed payload — IP from source address is still valid.
+      }
+
+      _wifiHost = serverIp;
+      if (serverPort != null) _wifiPort = serverPort;
+      _record('UDP: found server → $_wifiHost:$_wifiPort');
+    } on TimeoutException {
+      _record(
+        'UDP: no broadcast in ${_udpDiscoveryTimeout.inSeconds}s — using saved host',
+        level: LogLevel.warning,
+      );
+    } catch (e) {
+      _record(
+        'UDP: discovery error ($e) — using saved host',
+        level: LogLevel.warning,
+      );
+    } finally {
+      socket?.close();
+    }
+  }
+
   Future<void> _wifiConnect() async {
-    // Attempt auto-discovery first; falls back to saved host if not found.
-    await _tryMdnsDiscovery();
+    await _tryUdpDiscovery(); // auto-fills _wifiHost/_wifiPort if server is broadcasting
+    _record('TCP → $_wifiHost:$_wifiPort');
+    _tcpSocket = await Socket.connect(
+      _wifiHost,
+      _wifiPort,
+      timeout: _wifiConnectTimeout,
+    );
 
     _record('TCP → $_wifiHost:$_wifiPort');
     _tcpSocket = await Socket.connect(
@@ -9789,210 +10441,6 @@ class ConnectivityService extends ChangeNotifier {
 }
 </file>
 
-<file path="lib/services/gamepad_command.dart">
-// lib/services/gamepad_command.dart
-//
-// Immutable value-object that carries one virtual gamepad event and knows
-// how to serialise itself for every transport channel.
-
-import 'dart:typed_data';
-
-import 'package:flutter/foundation.dart'; // @immutable
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Command type taxonomy
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Coarse category of a gamepad input event.
-enum CommandType {
-  button, // digital: A / B / X / Y / shoulder / start / select …
-  axis,   // analogue stick axis: LS_X, LS_Y, RS_X, RS_Y, LT, RT
-  dpad,   // 8-way hat switch: up / down / left / right / diagonals
-  rumble, // force-feedback intensity command
-  system,
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Wire-format constants (keep in sync with host-side decoder)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// USB/BLE frame header byte marking the start of every packet.
-const int kFrameHeader = 0xAA;
-
-/// USB/BLE frame footer / end-of-packet sentinel.
-const int kFrameFooter = 0x55;
-
-/// Protocol version embedded in every packet.
-const int kProtoVersion = 0x01;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// GamepadCommand
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// A single input event emitted by the virtual gamepad UI layer.
-///
-/// ### Value ranges
-/// | [type]          | [value]                                  |
-/// |-----------------|------------------------------------------|
-/// | [CommandType.button] | 0 = released, 1 = pressed           |
-/// | [CommandType.axis]   | −32 768 … 32 767 (signed 16-bit)    |
-/// | [CommandType.dpad]   | 0–7 clockwise from North, 8 = centre |
-/// | [CommandType.rumble] | 0 (off) … 255 (max)                  |
-@immutable
-class GamepadCommand {
-  const GamepadCommand({
-    required this.type,
-    required this.id,
-    this.value = 0,
-    DateTime? timestamp,
-  }) : _timestamp = timestamp;
-
-  /// What kind of input this is.
-  final CommandType type;
-
-  /// Human-readable identifier matching the UI widget label.
-  /// Examples: `'A'`, `'B'`, `'LT'`, `'LS_X'`, `'DPAD'`, `'RUMBLE_L'`.
-  final String id;
-
-  /// Payload value (range depends on [type] — see class doc).
-  final int value;
-
-  final DateTime? _timestamp;
-
-  /// Wall-clock timestamp of this event (defaults to now on first access).
-  DateTime get timestamp => _timestamp ?? DateTime.now();
-
-  // ── Wi-Fi / TCP serialiser ──────────────────────────────────────────────────
-
-  /// Newline-delimited JSON frame sent over the TCP socket.
-  ///
-  /// ```json
-  /// {"v":1,"type":"button","id":"A","value":1,"ts":1718123456789}
-  /// ```
-  String toJsonFrame() {
-    final map = <String, dynamic>{
-      'v': kProtoVersion,
-      'type': type.name,
-      'id': id,
-      'value': value,
-      'ts': timestamp.millisecondsSinceEpoch,
-    };
-    // Manual encoding avoids a hard dependency on dart:convert at model level.
-    // If you already import dart:convert elsewhere, replace with jsonEncode(map).
-    final parts = map.entries
-        .map((e) => '"${e.key}":${e.value is String ? '"${e.value}"' : e.value}')
-        .join(',');
-    return '{$parts}\n';
-  }
-
-  // ── USB / Serial serialiser ─────────────────────────────────────────────────
-
-  /// Compact 8-byte binary frame for USB serial transport.
-  ///
-  /// ```
-  /// Byte  0    : 0xAA  – frame header
-  /// Byte  1    : 0x01  – protocol version
-  /// Byte  2    : type  – CommandType ordinal (0–3)
-  /// Byte  3    : id[0] – first ASCII byte of [id]
-  /// Byte  4    : id[1] – second ASCII byte (or 0x00 for single-char IDs)
-  /// Byte  5    : MSB   – value >> 8
-  /// Byte  6    : LSB   – value & 0xFF
-  /// Byte  7    : 0x55  – frame footer / end-of-packet sentinel
-  /// ```
-  Uint8List toUsbBytes() {
-    final clamped = value.clamp(-32768, 32767);
-    final msb = (clamped >> 8) & 0xFF;
-    final lsb = clamped & 0xFF;
-
-    final idB0 = id.isNotEmpty ? id.codeUnitAt(0) & 0xFF : 0x00;
-    final idB1 = id.length > 1 ? id.codeUnitAt(1) & 0xFF : 0x00;
-
-    return Uint8List.fromList([
-      kFrameHeader,       // 0xAA
-      kProtoVersion,      // 0x01
-      type.index,         // 0-3
-      idB0,               // id byte 0
-      idB1,               // id byte 1
-      msb,                // value MSB
-      lsb,                // value LSB
-      kFrameFooter,       // 0x55
-    ]);
-  }
-
-  // ── Bluetooth / BLE serialiser ──────────────────────────────────────────────
-
-  /// BLE characteristic write payload.
-  ///
-  /// Identical wire format to [toUsbBytes] so the host-side decoder is shared.
-  /// Use `withoutResponse: true` on non-critical button events for throughput;
-  /// flip to `false` for rumble / config commands that need a GATT ACK.
-  Uint8List toBleBytes() => toUsbBytes();
-
-  // ── Debug ───────────────────────────────────────────────────────────────────
-
-  @override
-  String toString() =>
-      'GamepadCommand(type:${type.name}, id:$id, value:$value, '
-          'ts:${timestamp.millisecondsSinceEpoch})';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is GamepadCommand &&
-              other.type == type &&
-              other.id == id &&
-              other.value == value;
-
-  @override
-  int get hashCode => Object.hash(type, id, value);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Convenience constructors (factory helpers used by the UI layer)
-// ─────────────────────────────────────────────────────────────────────────────
-
-extension GamepadCommandFactory on GamepadCommand {
-  /// Shorthand for a digital button press (value = 1).
-  static GamepadCommand buttonDown(String id) =>
-      GamepadCommand(type: CommandType.button, id: id, value: 1);
-
-  /// Shorthand for a digital button release (value = 0).
-  static GamepadCommand buttonUp(String id) =>
-      GamepadCommand(type: CommandType.button, id: id, value: 0);
-
-  /// Shorthand for an analogue axis update.
-  static GamepadCommand axis(String id, int value) =>
-      GamepadCommand(type: CommandType.axis, id: id, value: value);
-
-  /// Shorthand for a D-pad direction (0-7 clockwise from North, 8 = centre).
-  static GamepadCommand dpad(int direction) =>
-      GamepadCommand(type: CommandType.dpad, id: 'DPAD', value: direction);
-
-  /// Shorthand for a rumble intensity command (0–255).
-  static GamepadCommand rumble({required int left, required int right}) =>
-      GamepadCommand(
-          type: CommandType.rumble,
-          id: 'RUMBLE',
-          value: (left.clamp(0, 15) << 4) | right.clamp(0, 15));
-
-  static GamepadCommand setProfile(String profileId) {
-    return GamepadCommand(
-      type: CommandType.system,
-      id: 'SET_PROFILE',
-      value: profileId == 'xbox360' ? 0 : 1,  // 0 = Xbox 360, 1 = DS4
-    );
-  }
-
-  /// High-precision analog axis update (-1.0 to 1.0).
-  static GamepadCommand axisUpdate(String id, double value) {
-    // TODO: implement UDP axis encoding
-    // Temporarily map to the existing 16-bit signed integer format so the compiler passes
-    final int clamped16Bit = (value * 32767).clamp(-32768, 32767).toInt();
-    return GamepadCommand(type: CommandType.axis, id: id, value: clamped16Bit);
-  }
-}
-</file>
-
 <file path="lib/widgets/ps_layout.dart">
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -10032,11 +10480,7 @@ class PSLayout extends StatelessWidget {
         final baseUnit = math.min(w, h);
         final double userScale = context.watch<SettingsNotifier>().userScale;
         final layout = context.watch<LayoutNotifier>();
-
-        final leftTopKey = layout.leftZone.isNotEmpty ? layout.leftZone[0] : 'dpad';
-        final leftBottomKey = layout.leftZone.length > 1 ? layout.leftZone[1] : 'l_stick';
-        final rightTopKey = layout.rightZone.isNotEmpty ? layout.rightZone[0] : 'buttons';
-        final rightBottomKey = layout.rightZone.length > 1 ? layout.rightZone[1] : 'r_stick';
+        final accent = Theme.of(context).colorScheme.secondary;
 
         final centerWidth = w * 0.30;
         final centerHeight = h * 0.18 * userScale;
@@ -10046,91 +10490,157 @@ class PSLayout extends StatelessWidget {
         final bumperH = h * 0.12 * userScale;
 
         Widget buildComponent(String key) {
-          if (!layout.isVisible(key)) return const SizedBox.shrink();
-
           final stickSize = baseUnit * 0.40 * userScale;
           final dpadSize = baseUnit * 0.35 * userScale;
           final faceSize = baseUnit * 0.42 * userScale;
 
           switch (key) {
             case 'l_stick':
-                          return SizedBox(width: stickSize, child: ThumbstickWidget(axisX: 'LS_X', axisY: 'LS_Y', l3ButtonId: 'BTN_THUMBL', label: 'L3', onAxis: onAxis, onButton: onSignal, deadzoneNormalized: deadzoneNormalized, sensitivityMultiplier: sensitivityMultiplier));
+              return SizedBox(
+                width: stickSize,
+                child: ThumbstickWidget(
+                  axisX: 'LS_X',
+                  axisY: 'LS_Y',
+                  l3ButtonId: 'BTN_THUMBL',
+                  label: 'L3',
+                  onAxis: onAxis,
+                  onButton: onSignal,
+                  deadzoneNormalized: deadzoneNormalized,
+                  sensitivityMultiplier: sensitivityMultiplier,
+                ),
+              );
             case 'r_stick':
-                          return SizedBox(width: stickSize, child: ThumbstickWidget(axisX: 'RS_X', axisY: 'RS_Y', l3ButtonId: 'BTN_THUMBR', label: 'R3', onAxis: onAxis, onButton: onSignal, deadzoneNormalized: deadzoneNormalized, sensitivityMultiplier: sensitivityMultiplier));
+              return SizedBox(
+                width: stickSize,
+                child: ThumbstickWidget(
+                  axisX: 'RS_X',
+                  axisY: 'RS_Y',
+                  l3ButtonId: 'BTN_THUMBR',
+                  label: 'R3',
+                  onAxis: onAxis,
+                  onButton: onSignal,
+                  deadzoneNormalized: deadzoneNormalized,
+                  sensitivityMultiplier: sensitivityMultiplier,
+                ),
+              );
             case 'dpad':
               return DPadWidget(size: dpadSize, onSignal: onSignal);
             case 'buttons':
-              return FaceButtonCluster(isXbox: false, size: faceSize, onSignal: onSignal);
+              return FaceButtonCluster(
+                isXbox: false,
+                size: faceSize,
+                onSignal: onSignal,
+              );
             default:
               return const SizedBox.shrink();
           }
         }
 
+        // Helper to wrap any component as a draggable Positioned
+        Widget buildPositioned(String key, Widget child) {
+          final pos = layout.getPos(key);
+
+          if (!layout.isVisible(key)) return const SizedBox.shrink();
+
+          final posChild = Positioned(
+            left: pos.dx * w,
+            top: pos.dy * h,
+            child: child,
+          );
+
+          if (!layout.isEditing) return posChild;
+
+          // Edit mode: wrap in GestureDetector
+          return Positioned(
+            left: pos.dx * w,
+            top: pos.dy * h,
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                final newDx = pos.dx + details.delta.dx / w;
+                final newDy = pos.dy + details.delta.dy / h;
+                context.read<LayoutNotifier>().updatePosition(
+                  key,
+                  Offset(newDx, newDy),
+                );
+              },
+              child: Stack(
+                children: [
+                  child,
+                  // Drag handle indicator overlay
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: accent.withAlpha(180),
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         return Stack(
           children: [
-            // === TOP STRIP ===
-            if (layout.isVisible('lt') || layout.isVisible('lb'))
-              Positioned(
-                top: h * 0.02,
-                left: w * 0.15,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (layout.isVisible('lt')) LTButton(width: triggerW, height: triggerH, onSignal: onSignal, onAxis: onAxis),
-                    if (layout.isVisible('lt') && layout.isVisible('lb')) SizedBox(width: w * 0.02),
-                    if (layout.isVisible('lb')) LBButton(width: bumperW, height: bumperH, onSignal: onSignal),
-                  ],
-                ),
+            buildPositioned(
+              'lt',
+              LTButton(
+                width: triggerW,
+                height: triggerH,
+                onSignal: onSignal,
+                onAxis: onAxis,
+                isXbox: false,
               ),
-            if (layout.isVisible('rt') || layout.isVisible('rb'))
-              Positioned(
-                top: h * 0.02,
-                right: w * 0.15,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (layout.isVisible('rb')) RBButton(width: bumperW, height: bumperH, onSignal: onSignal),
-                    if (layout.isVisible('rt') && layout.isVisible('rb')) SizedBox(width: w * 0.02),
-                    if (layout.isVisible('rt')) RTButton(width: triggerW, height: triggerH, onSignal: onSignal, onAxis: onAxis),
-                  ],
-                ),
+            ),
+            buildPositioned(
+              'lb',
+              LBButton(
+                width: bumperW,
+                height: bumperH,
+                onSignal: onSignal,
+                isXbox: false,
               ),
-
-            // === LEFT WING ===
-            Positioned(
-              top: h * 0.28,
-              left: w * 0.05,
-              child: buildComponent(leftTopKey),
             ),
-            Positioned(
-              bottom: h * 0.05,
-              left: w * 0.18,
-              child: buildComponent(leftBottomKey),
+            buildPositioned(
+              'rt',
+              RTButton(
+                width: triggerW,
+                height: triggerH,
+                onSignal: onSignal,
+                onAxis: onAxis,
+                isXbox: false,
+              ),
             ),
-
-            // === RIGHT WING ===
-            Positioned(
-              top: h * 0.28,
-              right: w * 0.05,
-              child: buildComponent(rightTopKey),
+            buildPositioned(
+              'rb',
+              RBButton(
+                width: bumperW,
+                height: bumperH,
+                onSignal: onSignal,
+                isXbox: false,
+              ),
             ),
-            Positioned(
-              bottom: h * 0.05,
-              right: w * 0.18,
-              child: buildComponent(rightBottomKey),
-            ),
-
-            // === CENTER ===
-            Positioned(
-              bottom: h * 0.05,
-              left: (w / 2) - (centerWidth / 2),
-              width: centerWidth,
-              height: centerHeight,
-              child: CenterCluster(
+            buildPositioned('l_stick', buildComponent('l_stick')),
+            buildPositioned('dpad', buildComponent('dpad')),
+            buildPositioned('buttons', buildComponent('buttons')),
+            buildPositioned('r_stick', buildComponent('r_stick')),
+            buildPositioned(
+              'center',
+              SizedBox(
                 width: centerWidth,
                 height: centerHeight,
-                onSignal: onSignal,
-                onOpenSettings: onOpenSettings,
+                child: CenterCluster(
+                  width: centerWidth,
+                  height: centerHeight,
+                  onSignal: onSignal,
+                  onOpenSettings: onOpenSettings,
+                ),
               ),
             ),
           ],
@@ -10180,12 +10690,7 @@ class XboxLayout extends StatelessWidget {
         final baseUnit = math.min(w, h);
         final double userScale = context.watch<SettingsNotifier>().userScale;
         final layout = context.watch<LayoutNotifier>();
-
-        // Safe array index reading with fallbacks
-        final leftTopKey = layout.leftZone.isNotEmpty ? layout.leftZone[0] : 'l_stick';
-        final leftBottomKey = layout.leftZone.length > 1 ? layout.leftZone[1] : 'dpad';
-        final rightTopKey = layout.rightZone.isNotEmpty ? layout.rightZone[0] : 'buttons';
-        final rightBottomKey = layout.rightZone.length > 1 ? layout.rightZone[1] : 'r_stick';
+        final accent = Theme.of(context).colorScheme.secondary;
 
         final centerWidth = w * 0.30;
         final centerHeight = h * 0.18 * userScale;
@@ -10196,91 +10701,158 @@ class XboxLayout extends StatelessWidget {
 
         // Dynamic widget factory
         Widget buildComponent(String key) {
-          if (!layout.isVisible(key)) return const SizedBox.shrink();
-
           final stickSize = baseUnit * 0.40 * userScale;
           final dpadSize = baseUnit * 0.35 * userScale;
           final faceSize = baseUnit * 0.42 * userScale;
 
           switch (key) {
             case 'l_stick':
-                          return SizedBox(width: stickSize, child: ThumbstickWidget(axisX: 'LS_X', axisY: 'LS_Y', l3ButtonId: 'BTN_THUMBL', label: 'L3', onAxis: onAxis, onButton: onSignal, deadzoneNormalized: deadzoneNormalized, sensitivityMultiplier: sensitivityMultiplier));
+              return SizedBox(
+                width: stickSize,
+                child: ThumbstickWidget(
+                  axisX: 'LS_X',
+                  axisY: 'LS_Y',
+                  l3ButtonId: 'BTN_THUMBL',
+                  label: 'LS',
+                  onAxis: onAxis,
+                  onButton: onSignal,
+                  deadzoneNormalized: deadzoneNormalized,
+                  sensitivityMultiplier: sensitivityMultiplier,
+                ),
+              );
             case 'r_stick':
-                          return SizedBox(width: stickSize, child: ThumbstickWidget(axisX: 'RS_X', axisY: 'RS_Y', l3ButtonId: 'BTN_THUMBR', label: 'R3', onAxis: onAxis, onButton: onSignal, deadzoneNormalized: deadzoneNormalized, sensitivityMultiplier: sensitivityMultiplier));
+              return SizedBox(
+                width: stickSize,
+                child: ThumbstickWidget(
+                  axisX: 'RS_X',
+                  axisY: 'RS_Y',
+                  l3ButtonId: 'BTN_THUMBR',
+                  label: 'RS',
+                  onAxis: onAxis,
+                  onButton: onSignal,
+                  deadzoneNormalized: deadzoneNormalized,
+                  sensitivityMultiplier: sensitivityMultiplier,
+                ),
+              );
             case 'dpad':
               return DPadWidget(size: dpadSize, onSignal: onSignal);
             case 'buttons':
-              return FaceButtonCluster(isXbox: true, size: faceSize, onSignal: onSignal);
+              return FaceButtonCluster(
+                isXbox: true,
+                size: faceSize,
+                onSignal: onSignal,
+              );
             default:
               return const SizedBox.shrink();
           }
         }
 
+        // Helper to wrap any component as a draggable Positioned
+        Widget buildPositioned(String key, Widget child) {
+          final pos = layout.getPos(key);
+
+          // Visibility check is handled exclusively here now
+          if (!layout.isVisible(key)) return const SizedBox.shrink();
+
+          final posChild = Positioned(
+            left: pos.dx * w,
+            top: pos.dy * h,
+            child: child,
+          );
+
+          if (!layout.isEditing) return posChild;
+
+          // Edit mode: wrap in GestureDetector
+          return Positioned(
+            left: pos.dx * w,
+            top: pos.dy * h,
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                final newDx = pos.dx + details.delta.dx / w;
+                final newDy = pos.dy + details.delta.dy / h;
+                context.read<LayoutNotifier>().updatePosition(
+                  key,
+                  Offset(newDx, newDy),
+                );
+              },
+              child: Stack(
+                children: [
+                  child,
+                  // Drag handle indicator overlay
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: accent.withAlpha(180),
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         return Stack(
           children: [
-            // === TOP STRIP ===
-            if (layout.isVisible('lt') || layout.isVisible('lb'))
-              Positioned(
-                top: h * 0.02,
-                left: w * 0.15,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (layout.isVisible('lt')) LTButton(width: triggerW, height: triggerH, onSignal: onSignal, onAxis: onAxis),
-                    if (layout.isVisible('lt') && layout.isVisible('lb')) SizedBox(width: w * 0.02),
-                    if (layout.isVisible('lb')) LBButton(width: bumperW, height: bumperH, onSignal: onSignal),
-                  ],
-                ),
+            buildPositioned(
+              'lt',
+              LTButton(
+                width: triggerW,
+                height: triggerH,
+                onSignal: onSignal,
+                onAxis: onAxis,
+                isXbox: true,
               ),
-            if (layout.isVisible('rt') || layout.isVisible('rb'))
-              Positioned(
-                top: h * 0.02,
-                right: w * 0.15,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (layout.isVisible('rb')) RBButton(width: bumperW, height: bumperH, onSignal: onSignal),
-                    if (layout.isVisible('rt') && layout.isVisible('rb')) SizedBox(width: w * 0.02),
-                    if (layout.isVisible('rt')) RTButton(width: triggerW, height: triggerH, onSignal: onSignal, onAxis: onAxis),
-                  ],
-                ),
+            ),
+            buildPositioned(
+              'lb',
+              LBButton(
+                width: bumperW,
+                height: bumperH,
+                onSignal: onSignal,
+                isXbox: true,
               ),
-
-            // === LEFT WING ===
-            Positioned(
-              top: h * 0.28,
-              left: w * 0.05,
-              child: buildComponent(leftTopKey),
             ),
-            Positioned(
-              bottom: h * 0.05,
-              left: w * 0.18,
-              child: buildComponent(leftBottomKey),
+            buildPositioned(
+              'rt',
+              RTButton(
+                width: triggerW,
+                height: triggerH,
+                onSignal: onSignal,
+                onAxis: onAxis,
+                isXbox: true,
+              ),
             ),
-
-            // === RIGHT WING ===
-            Positioned(
-              top: h * 0.28,
-              right: w * 0.05,
-              child: buildComponent(rightTopKey),
+            buildPositioned(
+              'rb',
+              RBButton(
+                width: bumperW,
+                height: bumperH,
+                onSignal: onSignal,
+                isXbox: true,
+              ),
             ),
-            Positioned(
-              bottom: h * 0.05,
-              right: w * 0.18,
-              child: buildComponent(rightBottomKey),
-            ),
-
-            // === CENTER ===
-            Positioned(
-              bottom: h * 0.05,
-              left: (w / 2) - (centerWidth / 2),
-              width: centerWidth,
-              height: centerHeight,
-              child: CenterCluster(
+            buildPositioned('l_stick', buildComponent('l_stick')),
+            buildPositioned('dpad', buildComponent('dpad')),
+            buildPositioned('buttons', buildComponent('buttons')),
+            buildPositioned('r_stick', buildComponent('r_stick')),
+            buildPositioned(
+              'center',
+              SizedBox(
                 width: centerWidth,
                 height: centerHeight,
-                onSignal: onSignal,
-                onOpenSettings: onOpenSettings,
+                child: CenterCluster(
+                  width: centerWidth,
+                  height: centerHeight,
+                  onSignal: onSignal,
+                  onOpenSettings: onOpenSettings,
+                ),
               ),
             ),
           ],

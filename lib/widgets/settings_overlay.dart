@@ -12,7 +12,8 @@ import '../theme/app_theme.dart';
 import 'layout_editor_overlay.dart'; // REQUIRED TO OPEN THE EDITOR
 
 class SettingsOverlay extends StatefulWidget {
-  const SettingsOverlay({super.key});
+  final VoidCallback onOpenLayoutEditor;
+  const SettingsOverlay({super.key, required this.onOpenLayoutEditor});
 
   @override
   State<SettingsOverlay> createState() => _SettingsOverlayState();
@@ -23,6 +24,155 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
   double? _localSensitivity;
   double? _localDeadzone;
   double? _localUserScale;
+
+  late TextEditingController _ipController;
+  late TextEditingController _portController;
+
+  @override
+  void initState() {
+    super.initState();
+    final settings = context.read<SettingsNotifier>();
+    _ipController = TextEditingController(text: settings.wifiHost);
+    _portController = TextEditingController(text: settings.wifiPort.toString());
+  }
+
+  @override
+  void dispose() {
+    _ipController.dispose();
+    _portController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildWifiInputs(
+    BuildContext context,
+    SettingsNotifier settings,
+    ConnectivityService network,
+    Color accent,
+  ) {
+    final labelStyle = AppTheme.labelStyle(11, color: AppTheme.kTextSecondary);
+    final inputTextStyle = TextStyle(
+      fontSize: 13,
+      color: AppTheme.kTextPrimary,
+      fontFamily: 'monospace',
+      letterSpacing: 0.4,
+    );
+    final baseBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(6),
+      borderSide: BorderSide(color: AppTheme.kHudBorder),
+    );
+    final focusedBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(6),
+      borderSide: BorderSide(color: accent),
+    );
+    final decoration = InputDecoration(
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      filled: true,
+      fillColor: Colors.black26,
+      border: baseBorder,
+      enabledBorder: baseBorder,
+      focusedBorder: focusedBorder,
+    );
+
+    void saveIp() {
+      final ip = _ipController.text.trim();
+      if (ip.isNotEmpty && ip != settings.wifiHost) settings.setWifiHost(ip);
+    }
+
+    void savePort() {
+      final port = int.tryParse(_portController.text.trim());
+      if (port != null &&
+          port > 0 &&
+          port <= 65535 &&
+          port != settings.wifiPort) {
+        settings.setWifiPort(port);
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('PC IP ADDRESS', style: labelStyle),
+        const SizedBox(height: 4),
+        TextField(
+          controller: _ipController,
+          style: inputTextStyle,
+          decoration: decoration.copyWith(
+            hintText: '192.168.43.x  or  192.168.1.x',
+            hintStyle: TextStyle(
+              fontSize: 12,
+              color: AppTheme.kTextSecondary.withAlpha(90),
+            ),
+            prefixIcon: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Icon(Icons.wifi, size: 14, color: AppTheme.kTextSecondary),
+            ),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
+          ),
+          keyboardType: TextInputType.text,
+          autocorrect: false,
+          enableSuggestions: false,
+          onSubmitted: (_) => saveIp(),
+          onEditingComplete: () {
+            saveIp();
+            FocusScope.of(context).unfocus();
+          },
+        ),
+        const SizedBox(height: 10),
+        Text('PORT', style: labelStyle),
+        const SizedBox(height: 4),
+        TextField(
+          controller: _portController,
+          style: inputTextStyle,
+          decoration: decoration.copyWith(
+            hintText: '5000',
+            hintStyle: TextStyle(
+              fontSize: 12,
+              color: AppTheme.kTextSecondary.withAlpha(90),
+            ),
+          ),
+          keyboardType: TextInputType.number,
+          onSubmitted: (_) => savePort(),
+          onEditingComplete: () {
+            savePort();
+            FocusScope.of(context).unfocus();
+          },
+        ),
+        const SizedBox(height: 8),
+        // Status line
+        Row(
+          children: [
+            Icon(
+              network.isConnected
+                  ? Icons.check_circle_outline
+                  : Icons.info_outline,
+              size: 12,
+              color: network.isConnected
+                  ? Colors.greenAccent
+                  : AppTheme.kTextSecondary.withAlpha(150),
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                network.isConnected
+                    ? 'Connected → ${settings.wifiHost}:${settings.wifiPort}'
+                    : 'Enter the IP shown by ipconfig on your PC',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: network.isConnected
+                      ? Colors.greenAccent.withAlpha(200)
+                      : AppTheme.kTextSecondary.withAlpha(150),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,53 +283,22 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                             ),
                             const SizedBox(height: 16),
                             _buildActionButton('EDIT LAYOUT', accent, () {
-                              Navigator.of(
-                                context,
-                              ).pop(); // Close settings panel
-                              showGeneralDialog(
-                                context: context,
-                                barrierDismissible: true,
-                                barrierLabel: 'LayoutEditorDismiss',
-                                barrierColor: Colors.black87,
-                                pageBuilder:
-                                    (context, animation, secondaryAnimation) {
-                                      return const LayoutEditorOverlay();
-                                    },
-                              );
+                              Navigator.of(context).pop();
+                              widget.onOpenLayoutEditor(); // Close settings
                             }),
                             const SizedBox(height: 24),
 
                             _buildSectionTitle('CONNECTION', accent),
+                            // REPLACE WITH THIS:
                             if (network.activeMode == ActiveMode.wifi) ...[
-                              // IP and port are resolved automatically via mDNS.
-                              // Manual override is available through advanced settings (future feature).
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.wifi_find,
-                                      size: 14,
-                                      color: accent,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        network.isConnected
-                                            ? 'Connected to ${context.read<SettingsNotifier>().wifiHost}'
-                                            : 'Auto-discovering on local network…',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.kTextPrimary
-                                              .withAlpha(180),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              const SizedBox(height: 4),
+                              _buildWifiInputs(
+                                context,
+                                settings,
+                                network,
+                                accent,
                               ),
+                              const SizedBox(height: 8),
                             ],
                             _buildSegmentedControl<ActiveMode>(
                               value: network.activeMode,
@@ -193,6 +312,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                             ),
                             const SizedBox(height: 24),
                             // Connect / Disconnect button
+                            // REPLACE the CONNECT button's onPressed:
                             _buildActionButton(
                               network.isConnected ? 'DISCONNECT' : 'CONNECT',
                               network.isConnected ? Colors.redAccent : accent,
@@ -200,6 +320,22 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                                 if (network.isConnected) {
                                   await network.disconnect();
                                 } else {
+                                  // Flush any un-submitted text field values before connecting.
+                                  // (User may have typed an IP without pressing the keyboard's Done key.)
+                                  final newIp = _ipController.text.trim();
+                                  final newPort = int.tryParse(
+                                    _portController.text.trim(),
+                                  );
+                                  if (newIp.isNotEmpty &&
+                                      newIp != settings.wifiHost) {
+                                    await settings.setWifiHost(newIp);
+                                  }
+                                  if (newPort != null &&
+                                      newPort > 0 &&
+                                      newPort <= 65535 &&
+                                      newPort != settings.wifiPort) {
+                                    await settings.setWifiPort(newPort);
+                                  }
                                   await network.connect();
                                 }
                               },
