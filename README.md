@@ -28,7 +28,8 @@ AnyGamer is a cross-platform Flutter application that transforms your mobile dev
 | Xbox Layout | PlayStation Layout | Settings & Editor |
 <img width="2408" height="1080" alt="Screenshot_20260626_234452" src="https://github.com/user-attachments/assets/3fde0ec7-c79a-4958-ba09-f7c3a207eaf2" />
 <img width="2408" height="1080" alt="Screenshot_20260626_234422" src="https://github.com/user-attachments/assets/f4a5021a-e58a-46c9-a497-de8a7c1b7886" />
-<img width="2408" height="1080" alt="Screenshot_20260626_234452" src="https://github.com/user-attachments/assets/62279b7e-51a9-4c95-aefd-36da6824ae9d" />
+<img width="2408" height="1080" alt="Screenshot_20260626_234521" src="https://github.com/user-attachments/assets/4de668ab-52f1-49a7-904e-a48bc3f6a5b8" />
+
 
 
 ## 🚀 Getting Started
