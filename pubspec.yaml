@@ -12,8 +12,6 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  flutter_blue_plus: 1.32.0
-  wifi_iot: ^0.3.19+2
   usb_serial: ^0.5.2
   flutter_screenutil: ^5.9.3
   provider: ^6.1.5+1
@@ -22,6 +20,8 @@ dependencies:
   permission_handler: ^11.3.1
   multicast_dns: ^0.3.2+3
   flutter_foreground_task: ^8.13.0
+  flutter_bluetooth_serial: ^0.4.0
+  device_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:

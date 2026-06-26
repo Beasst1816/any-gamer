@@ -10,6 +10,12 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
+    <!-- Required for Bluetooth device discovery on Android 10–11 (API 29–30). -->
+    <!-- android:maxSdkVersion="30" ensures Android 12+ devices are unaffected. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+
     <!-- ─── WiFi / TCP Permissions ─── -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

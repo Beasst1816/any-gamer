@@ -1,13 +1,13 @@
 // lib/services/connectivity_service.dart
 //
-// Trimode ConnectivityService — routes virtual gamepad commands to the correct
-// hardware channel (Wi-Fi TCP, Bluetooth BLE, or USB Serial) and exposes a
-// single ChangeNotifier surface for the UI layer.
+// Tri-mode ConnectivityService — routes virtual gamepad commands to Wi-Fi TCP,
+// Bluetooth Classic SPP, or USB (ADB tunnel), and exposes a ChangeNotifier
+// surface for the UI.
 //
-// ── Required pubspec.yaml dependencies ────────────────────────────────────────
-//   flutter_blue_plus: ^1.32.0   # BLE
-//   usb_serial: ^0.5.1           # USB serial (Android / Windows / Linux)
-//   # dart:io is SDK-bundled — no additional dep for TCP
+// ── pubspec.yaml dependencies ─────────────────────────────────────────────────
+//   flutter_bluetooth_serial: ^0.4.0   # Classic BT SPP
+//   usb_serial: ^0.5.1                 # USB hot-plug events (Android)
+//   # dart:io — SDK-bundled
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'dart:async';
@@ -16,11 +16,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:multicast_dns/multicast_dns.dart';
 import 'package:usb_serial/usb_serial.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
-import 'gamepad_command.dart'; // GamepadCommand, CommandType
+import 'gamepad_command.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public enumerations
@@ -32,7 +31,7 @@ enum ActiveMode { wifi, bluetooth, usb }
 /// Fine-grained FSM state exposed to the UI for badge / icon rendering.
 enum ServiceConnectionState {
   disconnected,
-  scanning, // BLE scan in progress
+  scanning,
   connecting,
   connected,
   reconnecting,
@@ -68,24 +67,20 @@ class ConnectivityService extends ChangeNotifier {
   bool _userRequestedDisconnect = false;
   Timer? _heartbeatTimer;
 
-  ConnectivityService({
-    String wifiHost = '192.168.1.100',
-    int wifiPort = 5000,
-    String? bleDeviceName,
-  }) : _wifiHost = wifiHost,
-       _wifiPort = wifiPort,
-       _bleTargetName = bleDeviceName {
+  ConnectivityService({String wifiHost = '192.168.1.100', int wifiPort = 5000})
+    : _wifiHost = wifiHost,
+      _wifiPort = wifiPort {
     _initUsbEventListener();
   }
 
-  /// Start listening for USB hot-plug events immediately at service creation,
-  /// so attach events are received even before connect() is called.
+  /// Start listening for USB hot-plug events at construction time so attach
+  /// events are received before connect() is called.
   void _initUsbEventListener() {
     _usbEventSub = UsbSerial.usbEventStream?.listen(_onUsbEvent);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  Public state (consumed by UI via context.watch / Consumer)
+  //  Public state
   // ══════════════════════════════════════════════════════════════════════════
 
   ActiveMode _activeMode = ActiveMode.wifi;
@@ -183,7 +178,10 @@ class ConnectivityService extends ChangeNotifier {
       case ActiveMode.bluetooth:
         await _bleDisconnect();
       case ActiveMode.usb:
-        await _usbDisconnect();
+        // USB (ADB) tunnels over TCP — tear down the socket, then re-arm
+        // the hot-plug listener for the next attach event.
+        await _wifiDisconnect();
+        _initUsbEventListener();
     }
     _setState(ServiceConnectionState.disconnected, 'Disconnected');
   }
@@ -201,11 +199,11 @@ class ConnectivityService extends ChangeNotifier {
     try {
       switch (_activeMode) {
         case ActiveMode.wifi:
+        case ActiveMode.usb:
+          // USB (ADB) mode shares the same TCP stack as Wi-Fi.
           _wifiSend(command);
         case ActiveMode.bluetooth:
           await _bleSend(command);
-        case ActiveMode.usb:
-          await _usbSend(command);
       }
     } catch (e) {
       _record('Send error: $e', level: LogLevel.error);
@@ -215,26 +213,20 @@ class ConnectivityService extends ChangeNotifier {
 
   void pauseInput() {
     if (connectionState != ServiceConnectionState.connected) return;
-
     _isInputPaused = true;
     _heartbeatTimer?.cancel();
-
-    // Send a keepalive packet every 5 seconds to prevent TCP idle timeouts.
-    // Use socket.add(utf8.encode()) — NOT socket.write() — to send raw UTF-8 bytes.
-    // socket.write() uses latin-1 encoding and produces malformed packets.
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (_tcpSocket != null) {
-        _tcpSocket!.add(
-          utf8.encode('{"type":"system","id":"PING","value":0}\n'),
-        );
-      }
+    // Keep-alive packet every 5 s to prevent TCP idle timeouts.
+    // Use socket.add(utf8.encode()) — NOT socket.write() — to avoid latin-1 encoding.
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _tcpSocket?.add(
+        utf8.encode('{"type":"system","id":"PING","value":0}\n'),
+      );
     });
   }
 
   void resumeInput() {
     _isInputPaused = false;
     _heartbeatTimer?.cancel();
-
     if (!isConnected && _activeMode == ActiveMode.wifi) {
       _wifiRetryCount = 0;
       connect();
@@ -242,10 +234,8 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  ──  Wi-Fi / TCP channel  ────────────────────────────────────────────────
+  //  Wi-Fi / TCP
   // ══════════════════════════════════════════════════════════════════════════
-
-  // ── Configuration ──────────────────────────────────────────────────────────
 
   String _wifiHost;
   int _wifiPort;
@@ -254,80 +244,14 @@ class ConnectivityService extends ChangeNotifier {
   static const Duration _wifiReconnectDelay = Duration(seconds: 3);
   static const int _wifiMaxRetries = 5;
 
-  /// mDNS service type advertised by the C# ViGEm server.
-  static const String _mdnsServiceType = '_ctrlforge._tcp';
-
-  /// How long to wait for an mDNS response before falling back to the
-  /// stored host/port.
-  static const Duration _mdnsScanTimeout = Duration(seconds: 4);
-  static const bool _mdnsEnabled = false;
-
   static const int _udpDiscoveryPort = 5354;
   static const Duration _udpDiscoveryTimeout = Duration(seconds: 5);
-
-  // ── State ──────────────────────────────────────────────────────────────────
 
   Socket? _tcpSocket;
   StreamSubscription<Uint8List>? _tcpRxSub;
   Timer? _wifiReconnectTimer;
   int _wifiRetryCount = 0;
   bool _wifiReconnectPending = false;
-
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
-
-  /// Attempt mDNS discovery of the C# server on the local network.
-  ///
-  /// Scans for [_mdnsServiceType] records for up to [_mdnsScanTimeout].
-  /// On success, updates [_wifiHost] and [_wifiPort] in-place.
-  /// On failure (no record found, network error, timeout), leaves the
-  /// existing host/port unchanged so the user's manual entry acts as fallback.
-  Future<void> _tryMdnsDiscovery() async {
-    _record('mDNS: scanning for $_mdnsServiceType…');
-    final client = MDnsClient();
-    try {
-      await client.start();
-
-      // Resolve PTR → SRV → A chain with a hard timeout.
-      await for (final PtrResourceRecord ptr
-          in client
-              .lookup<PtrResourceRecord>(
-                ResourceRecordQuery.serverPointer(_mdnsServiceType),
-              )
-              .timeout(_mdnsScanTimeout, onTimeout: (_) {})) {
-        // Resolve SRV for port
-        await for (final SrvResourceRecord srv
-            in client
-                .lookup<SrvResourceRecord>(
-                  ResourceRecordQuery.service(ptr.domainName),
-                )
-                .timeout(const Duration(seconds: 2), onTimeout: (_) {})) {
-          // Resolve A for IP
-          await for (final IPAddressResourceRecord ip
-              in client
-                  .lookup<IPAddressResourceRecord>(
-                    ResourceRecordQuery.addressIPv4(srv.target),
-                  )
-                  .timeout(const Duration(seconds: 2), onTimeout: (_) {})) {
-            _wifiHost = ip.address.address;
-            _wifiPort = srv.port;
-            _record('mDNS: resolved → $_wifiHost:$_wifiPort');
-            return; // Found — stop scanning
-          }
-        }
-      }
-      _record(
-        'mDNS: no record found — using saved host $_wifiHost:$_wifiPort',
-        level: LogLevel.warning,
-      );
-    } catch (e) {
-      _record(
-        'mDNS: discovery error ($e) — using saved host',
-        level: LogLevel.warning,
-      );
-    } finally {
-      client.stop();
-    }
-  }
 
   Future<void> _tryUdpDiscovery() async {
     _record('UDP: listening for BeastReceiver on port $_udpDiscoveryPort…');
@@ -348,7 +272,6 @@ class ConnectivityService extends ChangeNotifier {
       // Server IP comes directly from the UDP source address — no parsing required.
       final serverIp = datagram!.address.address;
 
-      // Optionally validate the payload and read port.
       int? serverPort;
       try {
         final json =
@@ -377,13 +300,17 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   Future<void> _wifiConnect() async {
-    await _tryUdpDiscovery(); // auto-fills _wifiHost/_wifiPort if server is broadcasting
-    _record('TCP → $_wifiHost:$_wifiPort');
-    _tcpSocket = await Socket.connect(
-      _wifiHost,
-      _wifiPort,
-      timeout: _wifiConnectTimeout,
-    );
+    // Tear down any stale socket from a previous failed attempt.
+    if (_tcpSocket != null) {
+      await _tcpRxSub?.cancel();
+      _tcpRxSub = null;
+      try {
+        await _tcpSocket?.close();
+      } catch (_) {}
+      _tcpSocket = null;
+    }
+
+    await _tryUdpDiscovery();
 
     _record('TCP → $_wifiHost:$_wifiPort');
     _tcpSocket = await Socket.connect(
@@ -417,21 +344,14 @@ class ConnectivityService extends ChangeNotifier {
     _tcpRxSub = null;
     try {
       await _tcpSocket?.close();
-    } catch (_) {
-      /* already closed */
-    }
+    } catch (_) {}
     _tcpSocket = null;
     _record('TCP socket closed');
   }
 
-  // ── Inbound data ───────────────────────────────────────────────────────────
-
   void _onWifiData(Uint8List data) {
-    final text = utf8.decode(data, allowMalformed: true).trim();
-    _record('WiFi RX: $text');
+    _record('WiFi RX: ${utf8.decode(data, allowMalformed: true).trim()}');
   }
-
-  // ── Error / reconnect handling ─────────────────────────────────────────────
 
   void _onWifiError(Object error) {
     _record('TCP error: $error', level: LogLevel.error);
@@ -448,11 +368,9 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   void _scheduleWifiReconnect() {
-    // Guard: if a reconnect timer is already pending, ignore the duplicate call.
-    // This prevents _onWifiError + _onWifiDone both firing for a single RST
-    // from scheduling two concurrent reconnect timers.
+    // Guard against duplicate timers when both onError and onDone fire for the
+    // same RST.
     if (_wifiReconnectPending) return;
-
     if (_wifiRetryCount >= _wifiMaxRetries) {
       _setState(
         ServiceConnectionState.error,
@@ -460,7 +378,6 @@ class ConnectivityService extends ChangeNotifier {
       );
       return;
     }
-
     _wifiReconnectPending = true;
     _wifiRetryCount++;
     final delay = _wifiReconnectDelay * _wifiRetryCount;
@@ -481,286 +398,186 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  ──  Bluetooth / BLE channel  ────────────────────────────────────────────
+  //  Bluetooth Classic SPP
   // ══════════════════════════════════════════════════════════════════════════
+  //
+  // FlutterBluetoothSerial does NOT have a pickDevice() method.
+  // Device selection is a two-step UI flow:
+  //   1. UI calls getBondedDevices() to get the paired device list.
+  //   2. UI shows its own picker, then calls setBluetoothTarget(address, name).
+  //   3. UI calls connect() — _bleConnect() uses the stored address.
+  // ──────────────────────────────────────────────────────────────────────────
 
-  // ── GATT profile UUIDs (override to match your firmware) ──────────────────
+  BluetoothConnection? _btConnection;
+  int _bleRetryCount = 0;
+  static const int _maxBleRetries = 6; // 500 ms → 1 s → 2 s → 4 s → 8 s → 16 s
 
-  static const String kBleServiceUuid = '12345678-1234-1234-1234-1234567890ab';
-  static const String kBleCommandCharUuid =
-      'abcdef01-1234-1234-1234-abcdefabcdef';
-  static const String kBleNotifyCharUuid =
-      'abcdef02-1234-1234-1234-abcdefabcdef';
+  /// Address and display name of the device selected by the UI.
+  String? _bleTargetAddress;
+  String? _bleTargetName;
 
-  // ── Configuration ──────────────────────────────────────────────────────────
+  // ── Public BT helpers for the UI layer ─────────────────────────────────────
 
-  final String? _bleTargetName;
+  /// Returns all Classic BT devices already bonded (paired) to this phone.
+  ///
+  /// Usage in UI:
+  /// ```dart
+  /// final devices = await service.getBondedDevices();
+  /// // … show picker …
+  /// service.setBluetoothTarget(chosen.address, chosen.name);
+  /// service.connect();
+  /// ```
+  Future<List<BluetoothDevice>> getBondedDevices() =>
+      FlutterBluetoothSerial.instance.getBondedDevices();
 
-  static const Duration _bleScanTimeout = Duration(seconds: 10);
-  static const Duration _bleConnectTimeout = Duration(seconds: 15);
+  /// Pre-selects the BT device to connect to.
+  ///
+  /// Must be called (with a valid address) before [connect()] when
+  /// [activeMode] is [ActiveMode.bluetooth].
+  void setBluetoothTarget(String address, [String? name]) {
+    _bleTargetAddress = address;
+    _bleTargetName = name ?? address;
+    _record('BT: target set → ${_bleTargetName ?? address}');
+    notifyListeners();
+  }
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── _bleConnect() ──────────────────────────────────────────────────────────
 
-  BluetoothDevice? _bleDevice;
-  BluetoothCharacteristic? _bleCmdChar;
-  BluetoothCharacteristic? _bleNotifyChar;
-
-  StreamSubscription<BluetoothConnectionState>? _bleConnStateSub;
-  StreamSubscription<List<ScanResult>>? _bleScanSub;
-  StreamSubscription<List<int>>? _bleNotifySub;
-
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
-
+  /// Connects to [_bleTargetAddress] via Classic BT SPP (RFCOMM).
+  ///
+  /// Throws [StateError] if [setBluetoothTarget] has not been called first.
   Future<void> _bleConnect() async {
-    _setState(ServiceConnectionState.scanning, 'BLE: scanning…');
-
-    // ── 1. Scan for the peripheral ──────────────────────────────────────────
-    final completer = Completer<BluetoothDevice>();
-
-    await FlutterBluePlus.startScan(
-      withServices: [Guid(kBleServiceUuid)],
-      timeout: _bleScanTimeout,
-    );
-
-    _bleScanSub = FlutterBluePlus.scanResults.listen((results) {
-      for (final r in results) {
-        final nameMatch =
-            _bleTargetName == null || r.device.platformName == _bleTargetName;
-        if (nameMatch && !completer.isCompleted) {
-          FlutterBluePlus.stopScan();
-          completer.complete(r.device);
-          return;
-        }
-      }
-    });
-
-    _bleDevice = await completer.future.timeout(
-      _bleScanTimeout,
-      onTimeout: () =>
-          throw TimeoutException('BLE: no device found in scan window'),
-    );
-
-    // ── 2. Connect to the peripheral ────────────────────────────────────────
-    _record('BLE: connecting to ${_bleDevice!.platformName}…');
-    await _bleDevice!.connect(timeout: _bleConnectTimeout, autoConnect: false);
-    _record('BLE: connected to ${_bleDevice!.platformName}');
-
-    // ── 3. Monitor connection state ─────────────────────────────────────────
-    _bleConnStateSub = _bleDevice!.connectionState.listen(
-      _onBleConnectionState,
-    );
-
-    // ── 4. Discover characteristics ─────────────────────────────────────────
-    await _discoverBleCharacteristics();
-  }
-
-  Future<void> _discoverBleCharacteristics() async {
-    final services = await _bleDevice!.discoverServices();
-    for (final svc in services) {
-      if (svc.uuid.str.toLowerCase() == kBleServiceUuid.toLowerCase()) {
-        for (final char in svc.characteristics) {
-          final uuid = char.uuid.str.toLowerCase();
-          if (uuid == kBleCommandCharUuid.toLowerCase()) {
-            _bleCmdChar = char;
-            _record('BLE: command characteristic found');
-          } else if (uuid == kBleNotifyCharUuid.toLowerCase()) {
-            _bleNotifyChar = char;
-            await char.setNotifyValue(true);
-            _bleNotifySub = char.lastValueStream.listen(_onBleNotification);
-            _record('BLE: notify characteristic subscribed');
-          }
-        }
-      }
+    final address = _bleTargetAddress;
+    if (address == null) {
+      throw StateError(
+        'BT: no target device — call setBluetoothTarget() before connect()',
+      );
     }
-    if (_bleCmdChar == null) {
-      throw StateError('BLE: command characteristic not found in GATT table');
-    }
-  }
+    final displayName = _bleTargetName ?? address;
 
-  Future<void> _bleSend(GamepadCommand command) async {
-    if (_bleCmdChar == null) throw StateError('BLE: characteristic not ready');
-
-    final bytes = command.toBleBytes();
-    final withoutResponse = command.type != CommandType.rumble;
-
-    await _bleCmdChar!.write(bytes, withoutResponse: withoutResponse);
-    _record(
-      'BLE TX [${withoutResponse ? "NoAck" : "Ack"}]: '
-      '${_hexDump(bytes)}',
-    );
-  }
-
-  Future<void> _bleDisconnect() async {
-    await _bleScanSub?.cancel();
-    await _bleNotifySub?.cancel();
-    await _bleConnStateSub?.cancel();
-    try {
-      await _bleDevice?.disconnect();
-    } catch (_) {
-      /* ignore */
-    }
-    _bleDevice = null;
-    _bleCmdChar = null;
-    _bleNotifyChar = null;
-    _bleScanSub = null;
-    _bleNotifySub = null;
-    _bleConnStateSub = null;
-    _record('BLE disconnected');
-  }
-
-  // ── Inbound / event handlers ───────────────────────────────────────────────
-
-  void _onBleConnectionState(BluetoothConnectionState state) {
-    _record('BLE state → ${state.name}');
-    if (state == BluetoothConnectionState.disconnected) {
-      _bleCmdChar = null;
-      if (_connState == ServiceConnectionState.connected &&
-          !_userRequestedDisconnect) {
-        _setState(
-          ServiceConnectionState.reconnecting,
-          'BLE link dropped — retrying in 3s…',
-        );
-        Future.delayed(const Duration(seconds: 3), () {
-          if (_activeMode == ActiveMode.bluetooth &&
-              _connState == ServiceConnectionState.reconnecting) {
-            connect();
-          }
-        });
-      } else {
-        _setState(ServiceConnectionState.disconnected, 'BLE disconnected');
-      }
-    }
-  }
-
-  void _onBleNotification(List<int> data) {
-    _record('BLE NOTIFY: ${_hexDump(Uint8List.fromList(data))}');
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  //  ──  USB / Serial channel  ───────────────────────────────────────────────
-  // ══════════════════════════════════════════════════════════════════════════
-
-  // ── Configuration ──────────────────────────────────────────────────────────
-
-  static const int _usbBaudRate = 115200;
-  static const int _usbDataBits = UsbPort.DATABITS_8;
-  static const int _usbStopBits = UsbPort.STOPBITS_1;
-  static const int _usbParity = UsbPort.PARITY_NONE;
-  static const int _usbFlowCtrl = UsbPort.FLOW_CONTROL_OFF;
-
-  static const int? kTargetVendorId = null;
-  static const int? kTargetProductId = null;
-
-  // ── State ──────────────────────────────────────────────────────────────────
-
-  UsbPort? _usbPort;
-  StreamSubscription<Uint8List>? _usbRxSub;
-  StreamSubscription<UsbEvent>? _usbEventSub;
-
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
-
-  Future<void> _usbConnect() async {
-    // ── 1. Enumerate attached devices ───────────────────────────────────────
-    final devices = await UsbSerial.listDevices();
-    if (devices.isEmpty) {
-      throw StateError('USB: no serial devices attached');
-    }
-
-    final device = kTargetVendorId != null
-        ? devices.firstWhere(
-            (d) => d.vid == kTargetVendorId && d.pid == kTargetProductId,
-            orElse: () =>
-                throw StateError('USB: target VID/PID device not found'),
-          )
-        : devices.first;
-
-    _record(
-      'USB: device "${device.productName}" '
-      '[VID:0x${device.vid?.toRadixString(16)} '
-      'PID:0x${device.pid?.toRadixString(16)}]',
+    _setState(
+      ServiceConnectionState.connecting,
+      'BT: connecting to $displayName…',
     );
 
-    // ── 2. Open the port ────────────────────────────────────────────────────
-    _usbPort = await device.create();
-    if (_usbPort == null) throw StateError('USB: failed to create UsbPort');
+    // FIX (doc-3 regression): removed the spurious `await _btConnection?.finish()`
+    // that was placed immediately after toAddress(), which closed the connection
+    // the instant it was opened before the listener was ever attached.
+    _btConnection = await BluetoothConnection.toAddress(address);
 
-    final opened = await _usbPort!.open();
-    if (!opened) throw StateError('USB: failed to open port');
-
-    // ── 3. Configure UART parameters ────────────────────────────────────────
-    await _usbPort!.setPortParameters(
-      _usbBaudRate,
-      _usbDataBits,
-      _usbStopBits,
-      _usbParity,
-    );
-    await _usbPort!.setFlowControl(_usbFlowCtrl);
-    _record('USB: port open @ $_usbBaudRate baud 8-N-1');
-
-    // ── 4. Subscribe to RX stream ───────────────────────────────────────────
-    _usbRxSub = _usbPort!.inputStream?.listen(
-      _onUsbData,
-      onError: _onUsbError,
+    _btConnection!.input!.listen(
+      _onBleData,
+      onError: _onBleError,
+      onDone: _onBleDone,
       cancelOnError: false,
     );
 
-    // ── 5. Watch for hot-unplug events ──────────────────────────────────────
-    // _usbEventSub registration is now exclusively handled by _initUsbEventListener().
+    _bleRetryCount = 0;
+    _record('BT: connected to $displayName');
+    _setState(ServiceConnectionState.connected, 'BT: $displayName');
   }
 
-  Future<void> _usbSend(GamepadCommand command) async {
-    if (_usbPort == null) throw StateError('USB: port not open');
-    final bytes = command.toUsbBytes();
-    await _usbPort!.write(bytes);
-    _record('USB TX: ${_hexDump(bytes)}');
-  }
-
-  Future<void> _usbDisconnect() async {
-    await _usbRxSub?.cancel();
-    await _usbEventSub?.cancel();
-    _usbRxSub = null;
-    _usbEventSub = null;
-    try {
-      await _usbPort?.close();
-    } catch (_) {
-      /* ignore */
+  Future<void> _bleSend(GamepadCommand command) async {
+    if (_btConnection == null || !_btConnection!.isConnected) {
+      throw StateError('BT: not connected');
     }
-    _usbPort = null;
-    _record('USB port closed');
-    // Re-arm the hot-plug listener so the next attach event is caught.
-    _initUsbEventListener();
+    _btConnection!.output.add(utf8.encode(command.toJsonFrame()));
+    await _btConnection!.output.allSent;
   }
 
-  // ── Inbound / event handlers ───────────────────────────────────────────────
-
-  void _onUsbData(Uint8List data) {
-    _record('USB RX [${data.length}B]: ${_hexDump(data)}');
+  Future<void> _bleDisconnect() async {
+    _userRequestedDisconnect = true;
+    // finish() flushes the output buffer before closing (vs close() which is abrupt).
+    await _btConnection?.finish();
+    _btConnection = null;
+    _setState(ServiceConnectionState.disconnected, 'BT: disconnected');
+    _record('BT: disconnected (user requested)');
   }
 
-  void _onUsbError(Object error) {
-    _record('USB error: $error', level: LogLevel.error);
-    _setState(ServiceConnectionState.error, 'USB error: $error');
+  void _onBleData(Uint8List data) {
+    _record('BT ← ${utf8.decode(data, allowMalformed: true).trimRight()}');
+  }
+
+  void _onBleError(Object error, StackTrace stack) {
+    _record('BT error: $error', level: LogLevel.error);
+    _btConnection = null;
+    _setState(ServiceConnectionState.error, 'BT error: $error');
+    if (!_userRequestedDisconnect) _scheduleBleReconnect();
+  }
+
+  void _onBleDone() {
+    _record('BT: connection closed by remote');
+    _btConnection = null;
+    _setState(ServiceConnectionState.disconnected, 'BT: disconnected');
+    if (!_userRequestedDisconnect) _scheduleBleReconnect();
+  }
+
+  void _scheduleBleReconnect() {
+    if (_bleRetryCount >= _maxBleRetries) {
+      _record('BT: max retries ($_maxBleRetries) reached — giving up');
+      _setState(ServiceConnectionState.error, 'BT: could not reconnect');
+      return;
+    }
+    final delay = Duration(
+      milliseconds: (500 * (1 << _bleRetryCount)).clamp(500, 16000),
+    );
+    _bleRetryCount++;
+    _record(
+      'BT: scheduling retry $_bleRetryCount in ${delay.inMilliseconds} ms',
+    );
+    Future.delayed(delay, () {
+      if (!_userRequestedDisconnect) connect();
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  //  USB / ADB tunnel
+  //
+  //  USB mode reuses the Wi-Fi TCP stack by temporarily patching _wifiHost to
+  //  127.0.0.1.  ADB forwards phone-side localhost:_wifiPort to PC-side
+  //  localhost:_wifiPort where BeastReceiver is listening — no C# changes needed.
+  //
+  //  One-time setup:
+  //    1. Enable USB Debugging on the phone (Developer Options).
+  //    2. Connect USB cable.
+  //    3. On PC, run once:  adb forward tcp:5000 tcp:5000
+  //    4. In CTRLFORGE, select "USB (ADB)" and press CONNECT.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  StreamSubscription<UsbEvent>? _usbEventSub;
+
+  Future<void> _usbConnect() async {
+    _record('USB mode: ADB tunnel (tcp:$_wifiPort → tcp:$_wifiPort)');
+    // Temporarily override host to loopback; restore in finally so Settings
+    // are never mutated on error.
+    final String savedHost = _wifiHost;
+    _wifiHost = '127.0.0.1';
+    try {
+      await _wifiConnect();
+    } finally {
+      _wifiHost = savedHost;
+    }
   }
 
   void _onUsbEvent(UsbEvent event) {
     _record(
-      'USB event: ${event.event} '
-      '- ${event.device?.productName ?? "unknown device"}',
+      'USB event: ${event.event} — '
+      '${event.device?.productName ?? "unknown device"}',
     );
     final isDetach = event.event == UsbEvent.ACTION_USB_DETACHED;
-    final devices = isDetach || event.device == null
-        ? <UsbDevice>[]
-        : [event.device!];
-    _onUsbDeviceEvent(devices);
+    _onUsbDeviceEvent(
+      isDetach || event.device == null ? [] : [event.device!],
+    );
   }
 
   void _onUsbDeviceEvent(List<UsbDevice> devices) {
-    if (_usbPort != null && devices.isEmpty) {
-      _record('USB device removed', level: LogLevel.warning);
-      _setState(ServiceConnectionState.disconnected, 'USB device unplugged');
-    } else if (devices.isNotEmpty) {
+    if (devices.isEmpty) {
+      if (_activeMode == ActiveMode.usb && isConnected) {
+        _record('USB device removed', level: LogLevel.warning);
+        _setState(ServiceConnectionState.disconnected, 'USB device unplugged');
+      }
+    } else {
       _record('USB device attached (${devices.length} device(s))');
-      // Auto-connect if USB mode is active and not already connected.
       if (_activeMode == ActiveMode.usb &&
           _connState == ServiceConnectionState.disconnected &&
           !_userRequestedDisconnect) {
@@ -776,7 +593,7 @@ class ConnectivityService extends ChangeNotifier {
 
   Future<void> _onTransportError(Object error) async {
     _setState(ServiceConnectionState.error, 'Transport error: $error');
-    // Auto-reconnect only for Wi-Fi; BLE and USB require user action.
+    // Auto-reconnect only for Wi-Fi; BT and USB require user action.
     if (_activeMode == ActiveMode.wifi) _scheduleWifiReconnect();
   }
 
@@ -794,33 +611,18 @@ class ConnectivityService extends ChangeNotifier {
     if (_entries.length > _maxLogEntries) _entries.removeAt(0);
   }
 
-  static String _hexDump(Uint8List bytes, {int maxBytes = 24}) {
-    final slice = bytes.length > maxBytes ? bytes.sublist(0, maxBytes) : bytes;
-    final hex = slice
-        .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
-        .join(' ');
-    return bytes.length > maxBytes ? '$hex …(${bytes.length}B)' : hex;
-  }
-
   // ══════════════════════════════════════════════════════════════════════════
   //  Disposal
   // ══════════════════════════════════════════════════════════════════════════
 
   @override
   Future<void> dispose() async {
+    _heartbeatTimer?.cancel();
     _wifiCancelReconnect();
     await _tcpRxSub?.cancel();
     await _tcpSocket?.close();
-
-    await _bleScanSub?.cancel();
-    await _bleNotifySub?.cancel();
-    await _bleConnStateSub?.cancel();
-    await _bleDevice?.disconnect();
-
-    await _usbRxSub?.cancel();
+    await _btConnection?.finish();
     await _usbEventSub?.cancel();
-    await _usbPort?.close();
-
     super.dispose();
   }
 }

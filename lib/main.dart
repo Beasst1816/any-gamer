@@ -13,6 +13,7 @@ import 'screens/gamepad_screen.dart';
 import 'services/connectivity_service.dart';
 import 'theme/app_theme.dart';
 import 'providers/settings_notifier.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,12 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
 
   if (Platform.isAndroid) {
-    await [Permission.bluetoothScan, Permission.bluetoothConnect].request();
+    final int sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+    await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      if (sdkInt < 31) Permission.locationWhenInUse,
+    ].request();
   }
 
   // Lock the application to landscape mode natively

@@ -367,7 +367,7 @@ android {
         applicationId = "com.example.gamepad_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 24 
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -505,6 +505,23 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
+// ↓ MUST be registered BEFORE evaluationDependsOn triggers evaluation
+subprojects {
+    afterEvaluate {
+        if (plugins.hasPlugin("com.android.library")) {
+            extensions.findByType<com.android.build.gradle.LibraryExtension>()?.apply {
+                if (namespace == null) {
+                    namespace = group.toString().ifEmpty {
+                        "com.${project.name.replace("-", "_")}"
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ↓ This forces evaluation — must come AFTER afterEvaluate is registered
 subprojects {
     project.evaluationDependsOn(":app")
 }
@@ -1167,7 +1184,7 @@ code + .copy-button {
 <script type="text/javascript">
 function configurationCacheProblems() { return (
 // begin-report-data
-{"diagnostics":[{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('group = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('version = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('abortOnError = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('namespace = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"The RepositoryHandler.jcenter() method has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 9.0."}],"contextualLabel":"The RepositoryHandler.jcenter() method has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_6.html#jcenter_deprecation","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"repository-jcenter","displayName":"The RepositoryHandler.jcenter() method has been deprecated."}],"solutions":[[{"text":"JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('group = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('version = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"The RepositoryHandler.jcenter() method has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 9.0."}],"contextualLabel":"The RepositoryHandler.jcenter() method has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_6.html#jcenter_deprecation","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"repository-jcenter","displayName":"The RepositoryHandler.jcenter() method has been deprecated."}],"solutions":[[{"text":"JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('url = <value>') instead."}]]}],"problemsReport":{"totalProblemCount":9,"buildName":"android","requestedTasks":"assembleDebug","documentationLink":"https://docs.gradle.org/8.14/userguide/reporting_problems.html","documentationLinkCaption":"Problem report","summaries":[]}}
+{"diagnostics":[{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('group = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('version = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('namespace = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"The RepositoryHandler.jcenter() method has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 9.0."}],"contextualLabel":"The RepositoryHandler.jcenter() method has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_6.html#jcenter_deprecation","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"repository-jcenter","displayName":"The RepositoryHandler.jcenter() method has been deprecated."}],"solutions":[[{"text":"JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('group = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 10.0."}],"contextualLabel":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_8.html#groovy_space_assignment_syntax","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl","displayName":"Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."}],"solutions":[[{"text":"Use assignment ('version = <value>') instead."}]]},{"locations":[{}],"problem":[{"text":"The RepositoryHandler.jcenter() method has been deprecated."}],"severity":"WARNING","problemDetails":[{"text":"This is scheduled to be removed in Gradle 9.0."}],"contextualLabel":"The RepositoryHandler.jcenter() method has been deprecated.","documentationLink":"https://docs.gradle.org/8.14/userguide/upgrading_version_6.html#jcenter_deprecation","problemId":[{"name":"deprecation","displayName":"Deprecation"},{"name":"repository-jcenter","displayName":"The RepositoryHandler.jcenter() method has been deprecated."}],"solutions":[[{"text":"JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead."}]]}],"problemsReport":{"totalProblemCount":7,"buildName":"android","requestedTasks":"assembleRelease","documentationLink":"https://docs.gradle.org/8.14/userguide/reporting_problems.html","documentationLinkCaption":"Problem report","summaries":[]}}
 // end-report-data
 );}
 </script>
@@ -3235,590 +3252,6 @@ class _FaceButtonPainter extends CustomPainter {
 }
 </file>
 
-<file path="lib/widgets/layout_editor_overlay.dart">
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../models/layout_notifier.dart';
-import '../providers/theme_notifier.dart';
-import '../theme/app_theme.dart';
-
-class LayoutEditorOverlay extends StatefulWidget {
-  final VoidCallback onClose;
-  const LayoutEditorOverlay({super.key, required this.onClose});
-
-  @override
-  State<LayoutEditorOverlay> createState() => _LayoutEditorOverlayState();
-}
-
-class _LayoutEditorOverlayState extends State<LayoutEditorOverlay> {
-  // Add this state variable to track if the menus are showing
-  bool _isMenuVisible = true;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<LayoutNotifier>().setEditing(true);
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  void _close() {
-    context.read<LayoutNotifier>().setEditing(false);
-    widget.onClose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.watch<ThemeNotifier>();
-    final layout = context.watch<LayoutNotifier>();
-    final accent = theme.accentColor;
-
-    return Stack(
-      children: [
-        // ── Dim layer ───────────────────────────────────────────────────
-        Positioned.fill(
-          child: IgnorePointer(
-            // Make the dim layer lighter when menus are hidden so it's easier to see
-            child: Container(
-              color: Colors.black.withAlpha(_isMenuVisible ? 90 : 40),
-            ),
-          ),
-        ),
-
-        if (_isMenuVisible) ...[
-          // ── Top toolbar ─────────────────────────────────────────────────
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: _TopBar(
-                accent: accent,
-                onReset: layout.resetPositions,
-                onDone: _close,
-                // Pass the hide function down
-                onHide: () => setState(() => _isMenuVisible = false),
-              ),
-            ),
-          ),
-
-          // ── Bottom visibility panel ──────────────────────────────────────
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: _VisibilityPanel(layout: layout, accent: accent),
-            ),
-          ),
-        ] else ...[
-          // ── Floating "Show Menu" Pill ──────────────────────────────────
-          Positioned(
-            top: 16,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Center(
-                child: ElevatedButton.icon(
-                  onPressed: () => setState(() => _isMenuVisible = true),
-                  icon: Icon(Icons.visibility, color: accent, size: 16),
-                  label: Text(
-                    'SHOW MENU',
-                    style: AppTheme.labelStyle(
-                      14,
-                      color: accent,
-                      weight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.kBackground.withAlpha(240),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(color: accent, width: 1.5),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-// ── Top toolbar ───────────────────────────────────────────────────────────────
-
-class _TopBar extends StatelessWidget {
-  final Color accent;
-  final VoidCallback onReset;
-  final VoidCallback onDone;
-  final VoidCallback onHide;
-
-  const _TopBar({
-    required this.accent,
-    required this.onReset,
-    required this.onDone,
-    required this.onHide,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: AppTheme.kBackground.withAlpha(230),
-      child: Row(
-        children: [
-          Text('LAYOUT EDITOR', style: AppTheme.labelStyle(18, color: accent)),
-          const Spacer(),
-          // Hint so the user understands what to do
-          Text(
-            'DRAG BUTTONS TO REPOSITION',
-            style: AppTheme.labelStyle(11, color: AppTheme.kTextSecondary),
-          ),
-          const Spacer(),
-          TextButton(
-            onPressed: onHide,
-            child: Text(
-              'HIDE UI',
-              style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
-            ),
-          ),
-          const SizedBox(width: 4),
-          TextButton(
-            onPressed: onReset,
-            child: Text(
-              'RESET',
-              style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
-            ),
-          ),
-          const SizedBox(width: 4),
-          TextButton(
-            onPressed: onDone,
-            child: Text('DONE', style: AppTheme.labelStyle(13, color: accent)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Bottom visibility panel ───────────────────────────────────────────────────
-
-class _VisibilityPanel extends StatelessWidget {
-  final LayoutNotifier layout;
-  final Color accent;
-
-  // All toggleable component keys — matches original visibility system
-  static const _components = [
-    'lt',
-    'lb',
-    'rt',
-    'rb',
-    'l_stick',
-    'dpad',
-    'buttons',
-    'r_stick',
-    'select',
-    'start',
-  ];
-
-  const _VisibilityPanel({required this.layout, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-      color: AppTheme.kBackground.withAlpha(220),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'VISIBILITY',
-            style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _components
-                .map(
-                  (key) => _VisibilityChip(
-                    label: key.toUpperCase(),
-                    visible: layout.isVisible(key),
-                    accent: accent,
-                    onTap: () => layout.toggleVisibility(key),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _VisibilityChip extends StatelessWidget {
-  final String label;
-  final bool visible;
-  final Color accent;
-  final VoidCallback onTap;
-
-  const _VisibilityChip({
-    required this.label,
-    required this.visible,
-    required this.accent,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: visible ? accent.withAlpha(40) : Colors.transparent,
-          border: Border.all(
-            color: visible ? accent : AppTheme.kHudBorder,
-            width: 1.0,
-          ),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          label,
-          style: AppTheme.labelStyle(
-            12,
-            color: visible ? accent : AppTheme.kTextSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-</file>
-
-<file path="lib/widgets/thumbstick_widget.dart">
-import 'dart:async';
-import 'dart:math' as math;
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-
-import '../providers/theme_notifier.dart';
-import '../theme/app_theme.dart';
-
-class ThumbstickWidget extends StatefulWidget {
-  final String axisX;
-  final String axisY;
-  final String l3ButtonId;
-  final String label;
-  final void Function(String id, double value) onAxis;
-  final void Function(String id, bool pressed) onButton;
-  final double deadzoneNormalized;
-  final double sensitivityMultiplier;
-
-  const ThumbstickWidget({
-    super.key,
-    required this.axisX,
-    required this.axisY,
-    required this.l3ButtonId,
-    required this.label,
-    required this.onAxis,
-    required this.onButton,
-    this.deadzoneNormalized = 0.08,
-    this.sensitivityMultiplier = 1.0,
-  });
-
-  @override
-  State<ThumbstickWidget> createState() => _ThumbstickWidgetState();
-}
-
-class _ThumbstickWidgetState extends State<ThumbstickWidget> with SingleTickerProviderStateMixin {
-  // Ultra-fast state management bypassing setState()
-  late final ValueNotifier<Offset> _knobOffset;
-  late final ValueNotifier<Offset> _normalizedValues;
-  late final ValueNotifier<bool> _isL3Pressed;
-
-  // L3 Timing
-  Timer? _l3Timer;
-
-  // Return to center physics
-  late final AnimationController _animController;
-  Animation<Offset>? _returnAnim;
-
-  // Tracking last sent to prevent network spam
-  double _lastSentX = 0.0;
-  double _lastSentY = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _knobOffset = ValueNotifier(Offset.zero);
-    _normalizedValues = ValueNotifier(Offset.zero);
-    _isL3Pressed = ValueNotifier(false);
-
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-    );
-
-    _animController.addListener(() {
-      if (_returnAnim != null) {
-        _updateStickPhysics(_returnAnim!.value, 1.0); // maxRadius doesn't matter for 0,0
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _l3Timer?.cancel();
-    _animController.dispose();
-    _knobOffset.dispose();
-    _normalizedValues.dispose();
-    _isL3Pressed.dispose();
-    super.dispose();
-  }
-
-  void _updateStickPhysics(Offset localPosition, double maxRadius) {
-    double dx = localPosition.dx;
-    double dy = localPosition.dy;
-    final distance = math.sqrt(dx * dx + dy * dy);
-
-    // 1. Clamp to max radius
-    if (distance > maxRadius && maxRadius > 0) {
-      final ratio = maxRadius / distance;
-      dx *= ratio;
-      dy *= ratio;
-    }
-
-    _knobOffset.value = Offset(dx, dy);
-
-    // 2. Normalize (-1.0 to 1.0)
-    double normX = maxRadius > 0 ? dx / maxRadius : 0.0;
-    double normY = maxRadius > 0 ? dy / maxRadius : 0.0;
-
-    // 3. Apply Deadzone (8%)
-    final magnitude = math.sqrt(normX * normX + normY * normY);
-    if (magnitude < widget.deadzoneNormalized) {
-      normX = 0.0;
-      normY = 0.0;
-    } else {
-      // Sensitivity: rescale the live range above the deadzone
-      final rescale = (magnitude - widget.deadzoneNormalized)
-          / (1.0 - widget.deadzoneNormalized);
-      final boost = (rescale * widget.sensitivityMultiplier).clamp(0.0, 1.0);
-      normX = (normX / magnitude) * boost;
-      normY = (normY / magnitude) * boost;
-    }
-
-    _normalizedValues.value = Offset(normX, normY);
-
-    // 4. Cancel L3 timer if thumb leaves deadzone
-    if (magnitude >= widget.deadzoneNormalized && _l3Timer?.isActive == true) {
-      _l3Timer?.cancel();
-    }
-
-    // 5. Fire Network Signals (only if changed)
-    if (normX != _lastSentX) {
-      widget.onAxis(widget.axisX, normX);
-      _lastSentX = normX;
-    }
-    if (normY != _lastSentY) {
-      widget.onAxis(widget.axisY, normY);
-      _lastSentY = normY;
-    }
-  }
-
-  void _handlePointerDown(PointerDownEvent e, double center, double maxRadius) {
-    _animController.stop();
-
-    // Shift coordinate system so center is (0,0)
-    final localPosition = Offset(e.localPosition.dx - center, e.localPosition.dy - center);
-
-    // Ignore touches outside the bounding box
-    if (localPosition.distance > center) return;
-
-    _updateStickPhysics(localPosition, maxRadius);
-
-    // L3 Detection: start 180ms timer if inside deadzone
-    if (localPosition.distance < (maxRadius * 0.08)) {
-      _l3Timer = Timer(const Duration(milliseconds: 180), () {
-        _isL3Pressed.value = true;
-        widget.onButton(widget.l3ButtonId, true);
-        HapticFeedback.lightImpact();
-      });
-    }
-  }
-
-  void _handlePointerMove(PointerMoveEvent e, double center, double maxRadius) {
-    final localPosition = Offset(e.localPosition.dx - center, e.localPosition.dy - center);
-    _updateStickPhysics(localPosition, maxRadius);
-  }
-
-  void _handlePointerUp(PointerEvent e) {
-    _l3Timer?.cancel();
-
-    if (_isL3Pressed.value) {
-      _isL3Pressed.value = false;
-      widget.onButton(widget.l3ButtonId, false);
-    }
-
-    // Trigger exponential snap-back animation
-    _returnAnim = Tween<Offset>(
-      begin: _knobOffset.value,
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOutExpo));
-
-    _animController.forward(from: 0.0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = context.watch<ThemeNotifier>().accentColor;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Calculate proportional sizing based on available space
-        final size = math.min(constraints.maxWidth, constraints.maxHeight);
-        final center = size / 2;
-        final maxRadius = size * 0.38;
-
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Text Label
-            Text(
-              widget.label,
-              style: AppTheme.labelStyle(size * 0.12, color: AppTheme.kTextSecondary),
-            ),
-            SizedBox(height: size * 0.02),
-
-            // Stick Area
-            Listener(
-              onPointerDown: (e) => _handlePointerDown(e, center, maxRadius),
-              onPointerMove: (e) => _handlePointerMove(e, center, maxRadius),
-              onPointerUp: _handlePointerUp,
-              onPointerCancel: _handlePointerUp,
-              child: RepaintBoundary(
-                child: SizedBox(
-                  width: size,
-                  height: size,
-                  child: CustomPaint(
-                    painter: _ThumbstickPainter(
-                      knobOffset: _knobOffset,
-                      isL3Pressed: _isL3Pressed,
-                      accentColor: accent,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            SizedBox(height: size * 0.02),
-
-            // Real-time HUD readout
-            ValueListenableBuilder<Offset>(
-              valueListenable: _normalizedValues,
-              builder: (context, val, child) {
-                return Text(
-                  'X:${val.dx.toStringAsFixed(2)} Y:${val.dy.toStringAsFixed(2)}',
-                  style: AppTheme.labelStyle(size * 0.10, color: accent.withAlpha(200)),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// High-Performance Painter
-// -----------------------------------------------------------------------------
-
-class _ThumbstickPainter extends CustomPainter {
-  final ValueNotifier<Offset> knobOffset;
-  final ValueNotifier<bool> isL3Pressed;
-  final Color accentColor;
-
-  _ThumbstickPainter({
-    required this.knobOffset,
-    required this.isL3Pressed,
-    required this.accentColor,
-  }) : super(repaint: Listenable.merge([knobOffset, isL3Pressed]));
-  // ^ Listenable.merge automatically repaints only the canvas when values change!
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final outerRadius = size.width * 0.45;
-    final knobRadius = size.width * 0.18;
-
-    // 1. Draw Subdued Outer Base
-    final paintBase = Paint()
-      ..color = AppTheme.kBackground.withAlpha(150)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, outerRadius, paintBase);
-
-    // 2. Draw Subtle Crosshairs
-    final paintGrid = Paint()
-      ..color = AppTheme.kTextSecondary.withAlpha(30)
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-    canvas.drawLine(Offset(center.dx, center.dy - outerRadius), Offset(center.dx, center.dy + outerRadius), paintGrid);
-    canvas.drawLine(Offset(center.dx - outerRadius, center.dy), Offset(center.dx + outerRadius, center.dy), paintGrid);
-
-    // 3. Draw Outer Neon Border
-    final paintOuterBorder = Paint()
-      ..color = AppTheme.kHudBorder
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-    canvas.drawCircle(center, outerRadius, paintOuterBorder);
-
-    // 4. Draw Knob & Shadows
-    final currentOffset = center + knobOffset.value;
-    final isL3 = isL3Pressed.value;
-
-    final paintKnobShadow = Paint()
-      ..color = accentColor.withAlpha(isL3 ? 180 : 80)
-      ..style = PaintingStyle.fill
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, isL3 ? 16 : 8);
-    canvas.drawCircle(currentOffset, knobRadius, paintKnobShadow);
-
-    final paintKnob = Paint()
-      ..color = AppTheme.kHudSurface
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(currentOffset, knobRadius * (isL3 ? 0.92 : 1.0), paintKnob);
-
-    final paintKnobBorder = Paint()
-      ..color = accentColor
-      ..strokeWidth = isL3 ? 3.0 : 1.5
-      ..style = PaintingStyle.stroke;
-    canvas.drawCircle(currentOffset, knobRadius * (isL3 ? 0.92 : 1.0), paintKnobBorder);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ThumbstickPainter oldDelegate) {
-    return oldDelegate.accentColor != accentColor;
-  }
-}
-</file>
-
 <file path="linux/.gitignore">
 flutter/ephemeral
 </file>
@@ -4316,11 +3749,11 @@ MyApplication* my_application_new();
 import FlutterMacOS
 import Foundation
 
-import flutter_blue_plus
+import device_info_plus
 import shared_preferences_foundation
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  FlutterBluePlusPlugin.register(with: registry.registrar(forPlugin: "FlutterBluePlusPlugin"))
+  DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
 }
 </file>
@@ -6954,6 +6387,12 @@ class Win32Window {
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
+    <!-- Required for Bluetooth device discovery on Android 10–11 (API 29–30). -->
+    <!-- android:maxSdkVersion="30" ensures Android 12+ devices are unaffected. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+
     <!-- ─── WiFi / TCP Permissions ─── -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -7172,6 +6611,1385 @@ class SettingsNotifier extends ChangeNotifier {
       rethrow;
     }
     notifyListeners();
+  }
+}
+</file>
+
+<file path="lib/widgets/layout_editor_overlay.dart">
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../models/layout_notifier.dart';
+import '../providers/theme_notifier.dart';
+import '../theme/app_theme.dart';
+
+class LayoutEditorOverlay extends StatefulWidget {
+  final VoidCallback onClose;
+  const LayoutEditorOverlay({super.key, required this.onClose});
+
+  @override
+  State<LayoutEditorOverlay> createState() => _LayoutEditorOverlayState();
+}
+
+class _LayoutEditorOverlayState extends State<LayoutEditorOverlay> {
+  // Add this state variable to track if the menus are showing
+  bool _isMenuVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LayoutNotifier>().setEditing(true);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _close() {
+    context.read<LayoutNotifier>().setEditing(false);
+    widget.onClose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+    final layout = context.watch<LayoutNotifier>();
+    final accent = theme.accentColor;
+
+    return Stack(
+      children: [
+        // ── Dim layer ───────────────────────────────────────────────────
+        Positioned.fill(
+          child: IgnorePointer(
+            // Make the dim layer lighter when menus are hidden so it's easier to see
+            child: Container(
+              color: Colors.black.withAlpha(_isMenuVisible ? 90 : 40),
+            ),
+          ),
+        ),
+
+        if (_isMenuVisible) ...[
+          // ── Top toolbar ─────────────────────────────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: _TopBar(
+                accent: accent,
+                onReset: layout.resetPositions,
+                onDone: _close,
+                // Pass the hide function down
+                onHide: () => setState(() => _isMenuVisible = false),
+              ),
+            ),
+          ),
+
+          // ── Bottom visibility panel ──────────────────────────────────────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: _VisibilityPanel(layout: layout, accent: accent),
+            ),
+          ),
+        ] else ...[
+          // ── Floating "Show Menu" Pill ──────────────────────────────────
+          Positioned(
+            top: 16,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => setState(() => _isMenuVisible = true),
+                  icon: Icon(Icons.visibility, color: accent, size: 16),
+                  label: Text(
+                    'SHOW MENU',
+                    style: AppTheme.labelStyle(
+                      14,
+                      color: accent,
+                      weight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.kBackground.withAlpha(240),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(color: accent, width: 1.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── Top toolbar ───────────────────────────────────────────────────────────────
+
+class _TopBar extends StatelessWidget {
+  final Color accent;
+  final VoidCallback onReset;
+  final VoidCallback onDone;
+  final VoidCallback onHide;
+
+  const _TopBar({
+    required this.accent,
+    required this.onReset,
+    required this.onDone,
+    required this.onHide,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: AppTheme.kBackground.withAlpha(230),
+      child: Row(
+        children: [
+          Text('LAYOUT EDITOR', style: AppTheme.labelStyle(18, color: accent)),
+          const Spacer(),
+          // Hint so the user understands what to do
+          Text(
+            'DRAG BUTTONS TO REPOSITION',
+            style: AppTheme.labelStyle(11, color: AppTheme.kTextSecondary),
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: onHide,
+            child: Text(
+              'HIDE UI',
+              style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
+            ),
+          ),
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: onReset,
+            child: Text(
+              'RESET',
+              style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
+            ),
+          ),
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: onDone,
+            child: Text('DONE', style: AppTheme.labelStyle(13, color: accent)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Bottom visibility panel ───────────────────────────────────────────────────
+
+class _VisibilityPanel extends StatelessWidget {
+  final LayoutNotifier layout;
+  final Color accent;
+
+  // All toggleable component keys — matches original visibility system
+  static const _components = [
+    'lt',
+    'lb',
+    'rt',
+    'rb',
+    'l_stick',
+    'dpad',
+    'buttons',
+    'r_stick',
+    'select',
+    'start',
+  ];
+
+  const _VisibilityPanel({required this.layout, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      color: AppTheme.kBackground.withAlpha(220),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'VISIBILITY',
+            style: AppTheme.labelStyle(13, color: AppTheme.kTextSecondary),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _components
+                .map(
+                  (key) => _VisibilityChip(
+                    label: key.toUpperCase(),
+                    visible: layout.isVisible(key),
+                    accent: accent,
+                    onTap: () => layout.toggleVisibility(key),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VisibilityChip extends StatelessWidget {
+  final String label;
+  final bool visible;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _VisibilityChip({
+    required this.label,
+    required this.visible,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: visible ? accent.withAlpha(40) : Colors.transparent,
+          border: Border.all(
+            color: visible ? accent : AppTheme.kHudBorder,
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          label,
+          style: AppTheme.labelStyle(
+            12,
+            color: visible ? accent : AppTheme.kTextSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/widgets/shoulder_buttons.dart">
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/theme_notifier.dart';
+import '../theme/app_theme.dart';
+
+/// Base class to handle strict Multitouch and properly dispose ValueNotifiers
+class _BaseShoulderButton extends StatefulWidget {
+  final String id;
+  final String label;
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+
+  const _BaseShoulderButton({
+    super.key,
+    required this.id,
+    required this.label,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+  });
+
+  @override
+  State<_BaseShoulderButton> createState() => _BaseShoulderButtonState();
+}
+
+class _BaseShoulderButtonState extends State<_BaseShoulderButton> {
+  late final ValueNotifier<bool> _isPressed;
+
+  @override
+  void initState() {
+    super.initState();
+    _isPressed = ValueNotifier(false);
+  }
+
+  @override
+  void dispose() {
+    _isPressed.dispose();
+    super.dispose();
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    HapticFeedback.lightImpact();
+    _isPressed.value = true;
+    widget.onSignal(widget.id, true);
+  }
+
+  void _handlePointerUpOrCancel(PointerEvent event) {
+    _isPressed.value = false;
+    widget.onSignal(widget.id, false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+    final accent = theme.accentColor;
+
+    return Listener(
+      onPointerDown: _handlePointerDown,
+      onPointerUp: _handlePointerUpOrCancel,
+      onPointerCancel: _handlePointerUpOrCancel,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isPressed,
+        builder: (context, pressed, child) {
+          return AnimatedScale(
+            scale: pressed ? 0.92 : 1.0,
+            duration: const Duration(milliseconds: 50),
+            child: RepaintBoundary(
+              child: Container(
+                width: widget.width,
+                height: widget.height,
+                decoration: BoxDecoration(
+                  color: AppTheme.kHudSurface,
+                  borderRadius: BorderRadius.circular(widget.width * 0.5),
+                  border: Border.all(
+                    color: pressed ? accent : AppTheme.kHudBorder,
+                    width: 2,
+                  ),
+                  boxShadow: pressed
+                      ? [
+                          BoxShadow(
+                            color: accent.withAlpha(140),
+                            blurRadius: 14,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  widget.label,
+                  style: AppTheme.labelStyle(
+                    // Scales text relative to the button's height
+                    widget.height * 0.35,
+                    color: pressed ? accent : AppTheme.kTextSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Specific Implementations
+// -----------------------------------------------------------------------------
+
+class LTButton extends StatefulWidget {
+  final bool isXbox;
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+  final void Function(String id, double value)? onAxis;
+
+  const LTButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    this.onAxis,
+    required this.isXbox,
+  });
+
+  @override
+  State<LTButton> createState() => _LTButtonState();
+}
+
+class _LTButtonState extends State<LTButton> {
+  late final ValueNotifier<bool> _isPressed;
+  double _lastSent = 0.0;
+  final String _id = 'ABS_Z';
+
+  @override
+  void initState() {
+    super.initState();
+    _isPressed = ValueNotifier(false);
+  }
+
+  @override
+  void dispose() {
+    _isPressed.dispose();
+    super.dispose();
+  }
+
+  void _updatePressureFromEvent(PointerEvent e) {
+    final localY = e.localPosition.dy.clamp(0.0, widget.height);
+    final pressure = (localY / widget.height).clamp(0.0, 1.0);
+    if ((pressure - _lastSent).abs() >= 0.01) {
+      widget.onAxis?.call(_id, pressure);
+      _lastSent = pressure;
+    }
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    HapticFeedback.lightImpact();
+    _isPressed.value = true;
+    widget.onSignal(_id, true);
+    _updatePressureFromEvent(event);
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    _updatePressureFromEvent(event);
+  }
+
+  void _handlePointerUpOrCancel(PointerEvent event) {
+    _isPressed.value = false;
+    widget.onSignal(_id, false);
+    widget.onAxis?.call(_id, 0.0);
+    _lastSent = 0.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+    final accent = theme.accentColor;
+
+    return Listener(
+      onPointerDown: _handlePointerDown,
+      onPointerMove: _handlePointerMove,
+      onPointerUp: _handlePointerUpOrCancel,
+      onPointerCancel: _handlePointerUpOrCancel,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isPressed,
+        builder: (context, pressed, child) {
+          return AnimatedScale(
+            scale: pressed ? 0.92 : 1.0,
+            duration: const Duration(milliseconds: 50),
+            child: RepaintBoundary(
+              child: Container(
+                width: widget.width,
+                height: widget.height,
+                decoration: BoxDecoration(
+                  color: AppTheme.kHudSurface,
+                  borderRadius: BorderRadius.circular(widget.width * 0.5),
+                  border: Border.all(
+                    color: pressed ? accent : AppTheme.kHudBorder,
+                    width: 2,
+                  ),
+                  boxShadow: pressed
+                      ? [
+                          BoxShadow(
+                            color: accent.withAlpha(140),
+                            blurRadius: 14,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  widget.isXbox ? 'LT' : 'L2',
+                  style: AppTheme.labelStyle(
+                    widget.height * 0.35,
+                    color: pressed ? accent : AppTheme.kTextSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class RTButton extends StatefulWidget {
+  final bool isXbox;
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+  final void Function(String id, double value)? onAxis;
+
+  const RTButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    this.onAxis,
+    required this.isXbox,
+  });
+
+  @override
+  State<RTButton> createState() => _RTButtonState();
+}
+
+class _RTButtonState extends State<RTButton> {
+  late final ValueNotifier<bool> _isPressed;
+  double _lastSent = 0.0;
+  final String _id = 'ABS_RZ';
+
+  @override
+  void initState() {
+    super.initState();
+    _isPressed = ValueNotifier(false);
+  }
+
+  @override
+  void dispose() {
+    _isPressed.dispose();
+    super.dispose();
+  }
+
+  void _updatePressureFromEvent(PointerEvent e) {
+    final localY = e.localPosition.dy.clamp(0.0, widget.height);
+    final pressure = (localY / widget.height).clamp(0.0, 1.0);
+    if ((pressure - _lastSent).abs() >= 0.01) {
+      widget.onAxis?.call(_id, pressure);
+      _lastSent = pressure;
+    }
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    HapticFeedback.lightImpact();
+    _isPressed.value = true;
+    widget.onSignal(_id, true);
+    _updatePressureFromEvent(event);
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    _updatePressureFromEvent(event);
+  }
+
+  void _handlePointerUpOrCancel(PointerEvent event) {
+    _isPressed.value = false;
+    widget.onSignal(_id, false);
+    widget.onAxis?.call(_id, 0.0);
+    _lastSent = 0.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>();
+    final accent = theme.accentColor;
+
+    return Listener(
+      onPointerDown: _handlePointerDown,
+      onPointerMove: _handlePointerMove,
+      onPointerUp: _handlePointerUpOrCancel,
+      onPointerCancel: _handlePointerUpOrCancel,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isPressed,
+        builder: (context, pressed, child) {
+          return AnimatedScale(
+            scale: pressed ? 0.92 : 1.0,
+            duration: const Duration(milliseconds: 50),
+            child: RepaintBoundary(
+              child: Container(
+                width: widget.width,
+                height: widget.height,
+                decoration: BoxDecoration(
+                  color: AppTheme.kHudSurface,
+                  borderRadius: BorderRadius.circular(widget.width * 0.5),
+                  border: Border.all(
+                    color: pressed ? accent : AppTheme.kHudBorder,
+                    width: 2,
+                  ),
+                  boxShadow: pressed
+                      ? [
+                          BoxShadow(
+                            color: accent.withAlpha(140),
+                            blurRadius: 14,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  widget.isXbox ? 'RT' : 'R2',
+                  style: AppTheme.labelStyle(
+                    widget.height * 0.35,
+                    color: pressed ? accent : AppTheme.kTextSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class LBButton extends StatelessWidget {
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+  final bool isXbox;
+
+  const LBButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    required this.isXbox,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _BaseShoulderButton(
+      key: key,
+      id: 'BTN_TL',
+      label: isXbox ? 'LB' : 'L1',
+      width: width,
+      height: height,
+      onSignal: onSignal,
+    );
+  }
+}
+
+class RBButton extends StatelessWidget {
+  final bool isXbox;
+  final double width;
+  final double height;
+  final void Function(String id, bool isPressed) onSignal;
+
+  const RBButton({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.onSignal,
+    required this.isXbox,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _BaseShoulderButton(
+      key: key,
+      id: 'BTN_TR',
+      label: isXbox ? 'RB' : 'R1',
+      width: width,
+      height: height,
+      onSignal: onSignal,
+    );
+  }
+}
+</file>
+
+<file path="lib/widgets/thumbstick_widget.dart">
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/theme_notifier.dart';
+import '../theme/app_theme.dart';
+
+class ThumbstickWidget extends StatefulWidget {
+  final String axisX;
+  final String axisY;
+  final String l3ButtonId;
+  final String label;
+  final void Function(String id, double value) onAxis;
+  final void Function(String id, bool pressed) onButton;
+  final double deadzoneNormalized;
+  final double sensitivityMultiplier;
+
+  const ThumbstickWidget({
+    super.key,
+    required this.axisX,
+    required this.axisY,
+    required this.l3ButtonId,
+    required this.label,
+    required this.onAxis,
+    required this.onButton,
+    this.deadzoneNormalized = 0.08,
+    this.sensitivityMultiplier = 1.0,
+  });
+
+  @override
+  State<ThumbstickWidget> createState() => _ThumbstickWidgetState();
+}
+
+class _ThumbstickWidgetState extends State<ThumbstickWidget>
+    with SingleTickerProviderStateMixin {
+  // Ultra-fast state management bypassing setState()
+  late final ValueNotifier<Offset> _knobOffset;
+  late final ValueNotifier<Offset> _normalizedValues;
+  late final ValueNotifier<bool> _isL3Pressed;
+
+  // L3 Timing
+  Timer? _l3Timer;
+
+  // Return to center physics
+  late final AnimationController _animController;
+  Animation<Offset>? _returnAnim;
+
+  // Tracking last sent to prevent network spam
+  double _lastSentX = 0.0;
+  double _lastSentY = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _knobOffset = ValueNotifier(Offset.zero);
+    _normalizedValues = ValueNotifier(Offset.zero);
+    _isL3Pressed = ValueNotifier(false);
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+
+    _animController.addListener(() {
+      if (_returnAnim != null) {
+        _updateStickPhysics(
+          _returnAnim!.value,
+          1.0,
+        ); // maxRadius doesn't matter for 0,0
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _l3Timer?.cancel();
+    _animController.dispose();
+    _knobOffset.dispose();
+    _normalizedValues.dispose();
+    _isL3Pressed.dispose();
+    super.dispose();
+  }
+
+  void _updateStickPhysics(Offset localPosition, double maxRadius) {
+    double dx = localPosition.dx;
+    double dy = localPosition.dy;
+    final distance = math.sqrt(dx * dx + dy * dy);
+
+    // 1. Clamp to max radius
+    if (distance > maxRadius && maxRadius > 0) {
+      final ratio = maxRadius / distance;
+      dx *= ratio;
+      dy *= ratio;
+    }
+
+    _knobOffset.value = Offset(dx, dy);
+
+    // 2. Normalize (-1.0 to 1.0)
+    double normX = maxRadius > 0 ? dx / maxRadius : 0.0;
+    double normY = maxRadius > 0 ? dy / maxRadius : 0.0;
+
+    // 3. Apply Deadzone (8%)
+    final magnitude = math.sqrt(normX * normX + normY * normY);
+    if (magnitude < widget.deadzoneNormalized) {
+      normX = 0.0;
+      normY = 0.0;
+    } else {
+      // Sensitivity: rescale the live range above the deadzone
+      final rescale =
+          (magnitude - widget.deadzoneNormalized) /
+          (1.0 - widget.deadzoneNormalized);
+      final boost = (rescale * widget.sensitivityMultiplier).clamp(0.0, 1.0);
+      normX = (normX / magnitude) * boost;
+      normY = (normY / magnitude) * boost;
+    }
+
+    _normalizedValues.value = Offset(normX, normY);
+
+    // 4. Cancel L3 timer if thumb leaves deadzone
+    if (magnitude >= widget.deadzoneNormalized && _l3Timer?.isActive == true) {
+      _l3Timer?.cancel();
+    }
+
+    // 5. Fire Network Signals (only if changed)
+    if (normX != _lastSentX) {
+      widget.onAxis(widget.axisX, normX);
+      _lastSentX = normX;
+    }
+    if (normY != _lastSentY) {
+      widget.onAxis(widget.axisY, normY);
+      _lastSentY = normY;
+    }
+  }
+
+  void _handlePointerDown(PointerDownEvent e, double center, double maxRadius) {
+    _animController.stop();
+
+    // Shift coordinate system so center is (0,0)
+    final localPosition = Offset(
+      e.localPosition.dx - center,
+      e.localPosition.dy - center,
+    );
+
+    // Ignore touches outside the bounding box
+    if (localPosition.distance > center) return;
+
+    _updateStickPhysics(localPosition, maxRadius);
+
+    // L3 Detection: start 180ms timer if inside deadzone
+    if (localPosition.distance < (maxRadius * 0.08)) {
+      _l3Timer = Timer(const Duration(milliseconds: 180), () {
+        _isL3Pressed.value = true;
+        widget.onButton(widget.l3ButtonId, true);
+        HapticFeedback.lightImpact();
+      });
+    }
+  }
+
+  void _handlePointerMove(PointerMoveEvent e, double center, double maxRadius) {
+    final localPosition = Offset(
+      e.localPosition.dx - center,
+      e.localPosition.dy - center,
+    );
+    _updateStickPhysics(localPosition, maxRadius);
+  }
+
+  void _handlePointerUp(PointerEvent e) {
+    _l3Timer?.cancel();
+
+    if (_isL3Pressed.value) {
+      _isL3Pressed.value = false;
+      widget.onButton(widget.l3ButtonId, false);
+    }
+
+    // Trigger exponential snap-back animation
+    _returnAnim = Tween<Offset>(begin: _knobOffset.value, end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutExpo),
+        );
+
+    _animController.forward(from: 0.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.watch<ThemeNotifier>().accentColor;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate proportional sizing based on available space
+        final size = math.min(constraints.maxWidth, constraints.maxHeight);
+        final center = size / 2;
+        final maxRadius = size * 0.38;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Text Label
+            Text(
+              widget.label,
+              style: AppTheme.labelStyle(
+                size * 0.12,
+                color: AppTheme.kTextSecondary,
+              ),
+            ),
+            SizedBox(height: size * 0.02),
+
+            // Stick Area
+            Listener(
+              onPointerDown: (e) => _handlePointerDown(e, center, maxRadius),
+              onPointerMove: (e) => _handlePointerMove(e, center, maxRadius),
+              onPointerUp: _handlePointerUp,
+              onPointerCancel: _handlePointerUp,
+              child: RepaintBoundary(
+                child: SizedBox(
+                  width: size,
+                  height: size,
+                  child: CustomPaint(
+                    painter: _ThumbstickPainter(
+                      knobOffset: _knobOffset,
+                      isL3Pressed: _isL3Pressed,
+                      accentColor: accent,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// High-Performance Painter
+// -----------------------------------------------------------------------------
+
+class _ThumbstickPainter extends CustomPainter {
+  final ValueNotifier<Offset> knobOffset;
+  final ValueNotifier<bool> isL3Pressed;
+  final Color accentColor;
+
+  _ThumbstickPainter({
+    required this.knobOffset,
+    required this.isL3Pressed,
+    required this.accentColor,
+  }) : super(repaint: Listenable.merge([knobOffset, isL3Pressed]));
+  // ^ Listenable.merge automatically repaints only the canvas when values change!
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final outerRadius = size.width * 0.45;
+    final knobRadius = size.width * 0.18;
+
+    // 1. Draw Subdued Outer Base
+    final paintBase = Paint()
+      ..color = AppTheme.kBackground.withAlpha(150)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, outerRadius, paintBase);
+
+    // 2. Draw Subtle Crosshairs
+    final paintGrid = Paint()
+      ..color = AppTheme.kTextSecondary.withAlpha(30)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(
+      Offset(center.dx, center.dy - outerRadius),
+      Offset(center.dx, center.dy + outerRadius),
+      paintGrid,
+    );
+    canvas.drawLine(
+      Offset(center.dx - outerRadius, center.dy),
+      Offset(center.dx + outerRadius, center.dy),
+      paintGrid,
+    );
+
+    // 3. Draw Outer Neon Border
+    final paintOuterBorder = Paint()
+      ..color = AppTheme.kHudBorder
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+    canvas.drawCircle(center, outerRadius, paintOuterBorder);
+
+    // 4. Draw Knob & Shadows
+    final currentOffset = center + knobOffset.value;
+    final isL3 = isL3Pressed.value;
+
+    final paintKnobShadow = Paint()
+      ..color = accentColor.withAlpha(isL3 ? 180 : 80)
+      ..style = PaintingStyle.fill
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, isL3 ? 16 : 8);
+    canvas.drawCircle(currentOffset, knobRadius, paintKnobShadow);
+
+    final paintKnob = Paint()
+      ..color = AppTheme.kHudSurface
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      currentOffset,
+      knobRadius * (isL3 ? 0.92 : 1.0),
+      paintKnob,
+    );
+
+    final paintKnobBorder = Paint()
+      ..color = accentColor
+      ..strokeWidth = isL3 ? 3.0 : 1.5
+      ..style = PaintingStyle.stroke;
+    canvas.drawCircle(
+      currentOffset,
+      knobRadius * (isL3 ? 0.92 : 1.0),
+      paintKnobBorder,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ThumbstickPainter oldDelegate) {
+    return oldDelegate.accentColor != accentColor;
+  }
+}
+</file>
+
+<file path="linux/flutter/generated_plugins.cmake">
+#
+# Generated file, do not edit.
+#
+
+list(APPEND FLUTTER_PLUGIN_LIST
+)
+
+list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  jni
+)
+
+set(PLUGIN_BUNDLED_LIBRARIES)
+
+foreach(plugin ${FLUTTER_PLUGIN_LIST})
+  add_subdirectory(flutter/ephemeral/.plugin_symlinks/${plugin}/linux plugins/${plugin})
+  target_link_libraries(${BINARY_NAME} PRIVATE ${plugin}_plugin)
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES $<TARGET_FILE:${plugin}_plugin>)
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${plugin}_bundled_libraries})
+endforeach(plugin)
+
+foreach(ffi_plugin ${FLUTTER_FFI_PLUGIN_LIST})
+  add_subdirectory(flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/linux plugins/${ffi_plugin})
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${ffi_plugin}_bundled_libraries})
+endforeach(ffi_plugin)
+</file>
+
+<file path="test/widget_test.dart">
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility in the flutter_test package. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:gamepad_app/main.dart';
+
+void main() {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    // Set up a mock SharedPreferences for testing
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(GamepadApp(prefs: prefs));
+
+    // Verify that our counter starts at 0.
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+
+    // Tap the '+' icon and trigger a frame.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+
+    // Verify that our counter has incremented.
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
+  });
+}
+</file>
+
+<file path="windows/flutter/generated_plugin_registrant.cc">
+//
+//  Generated file. Do not edit.
+//
+
+// clang-format off
+
+#include "generated_plugin_registrant.h"
+
+#include <permission_handler_windows/permission_handler_windows_plugin.h>
+
+void RegisterPlugins(flutter::PluginRegistry* registry) {
+  PermissionHandlerWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
+}
+</file>
+
+<file path="lib/main.dart">
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'models/layout_notifier.dart';
+import 'providers/theme_notifier.dart';
+import 'screens/gamepad_screen.dart';
+import 'services/connectivity_service.dart';
+import 'theme/app_theme.dart';
+import 'providers/settings_notifier.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load SharedPreferences before rendering any UI to prevent null pointer exceptions
+  final prefs = await SharedPreferences.getInstance();
+
+  if (Platform.isAndroid) {
+    await [Permission.bluetoothScan, Permission.bluetoothConnect].request();
+  }
+
+  // Lock the application to landscape mode natively
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeRight,
+    DeviceOrientation.landscapeLeft,
+  ]);
+
+  // Enforce Immersive Sticky Mode for gamepads to prevent accidental edge-swipes
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+  // All async initialization complete; now render the app
+  runApp(GamepadApp(prefs: prefs));
+}
+
+class GamepadApp extends StatelessWidget {
+  final SharedPreferences prefs;
+
+  const GamepadApp({Key? key, required this.prefs}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Inject the state providers at the very top of the widget tree
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+        ChangeNotifierProvider(create: (_) => LayoutNotifier(prefs)),
+        ChangeNotifierProvider(create: (_) => SettingsNotifier(prefs)),
+        ChangeNotifierProxyProvider<SettingsNotifier, ConnectivityService>(
+          create: (context) {
+            final settings = context.read<SettingsNotifier>();
+            return ConnectivityService(
+              wifiHost: settings.wifiHost,
+              wifiPort: settings.wifiPort,
+            );
+          },
+          update: (_, settings, previous) {
+            previous!.updateWifiTarget(settings.wifiHost, settings.wifiPort);
+            return previous;
+          },
+        ),
+      ],
+      child: ScreenUtilInit(
+        // Flipped to Landscape dimensions (Width: 844, Height: 390)
+        designSize: const Size(844, 390),
+        minTextAdapt: true,
+        builder: (context, child) {
+          return MaterialApp(
+            title: 'CTRLFORGE',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              scaffoldBackgroundColor: AppTheme.kBackground,
+              brightness: Brightness.dark,
+            ),
+            home: const GamepadScreen(),
+          );
+        },
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/services/gamepad_command.dart">
+// lib/services/gamepad_command.dart
+//
+// Immutable value-object that carries one virtual gamepad event and knows
+// how to serialise itself for every transport channel.
+
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
+import 'dart:convert'; // jsonEncode// @immutable
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Command type taxonomy
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Coarse category of a gamepad input event.
+enum CommandType {
+  button, // digital: A / B / X / Y / shoulder / start / select …
+  axis, // analogue stick axis: LS_X, LS_Y, RS_X, RS_Y, LT, RT
+  dpad, // 8-way hat switch: up / down / left / right / diagonals
+  rumble, // force-feedback intensity command
+  system,
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Wire-format constants (keep in sync with host-side decoder)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// USB/BLE frame header byte marking the start of every packet.
+const int kFrameHeader = 0xAA;
+
+/// USB/BLE frame footer / end-of-packet sentinel.
+const int kFrameFooter = 0x55;
+
+/// Protocol version embedded in every packet.
+const int kProtoVersion = 0x01;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GamepadCommand
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A single input event emitted by the virtual gamepad UI layer.
+///
+/// ### Value ranges
+/// | [type]          | [value]                                  |
+/// |-----------------|------------------------------------------|
+/// | [CommandType.button] | 0 = released, 1 = pressed           |
+/// | [CommandType.axis]   | −32 768 … 32 767 (signed 16-bit)    |
+/// | [CommandType.dpad]   | 0–7 clockwise from North, 8 = centre |
+/// | [CommandType.rumble] | 0 (off) … 255 (max)                  |
+@immutable
+class GamepadCommand {
+  const GamepadCommand({
+    required this.type,
+    required this.id,
+    this.value = 0,
+    DateTime? timestamp,
+  }) : _timestamp = timestamp;
+
+  /// What kind of input this is.
+  final CommandType type;
+
+  /// Human-readable identifier matching the UI widget label.
+  /// Examples: `'A'`, `'B'`, `'LT'`, `'LS_X'`, `'DPAD'`, `'RUMBLE_L'`.
+  final String id;
+
+  /// Payload value (range depends on [type] — see class doc).
+  final int value;
+
+  final DateTime? _timestamp;
+
+  /// Wall-clock timestamp of this event (defaults to now on first access).
+  DateTime get timestamp => _timestamp ?? DateTime.now();
+
+  // ── Wi-Fi / TCP serialiser ──────────────────────────────────────────────────
+
+  /// Newline-delimited JSON frame sent over the TCP socket.
+  ///
+  /// ```json
+  /// {"v":1,"type":"button","id":"A","value":1,"ts":1718123456789}
+  /// ```
+  String toJsonFrame() {
+    // jsonEncode correctly escapes all special characters in string values.
+    // The trailing '\n' is the newline delimiter BeastReceiver's StreamReader
+    // expects (ReadLine() / split on '\n').
+    return jsonEncode({
+          'v': kProtoVersion,
+          'type': type.name,
+          'id': id,
+          'value': value,
+          'ts': timestamp.millisecondsSinceEpoch,
+        }) +
+        '\n';
+  }
+
+  // ── USB / Serial serialiser ─────────────────────────────────────────────────
+
+  /// Compact 8-byte binary frame for USB serial transport.
+  ///
+  /// ```
+  /// Byte  0    : 0xAA  – frame header
+  /// Byte  1    : 0x01  – protocol version
+  /// Byte  2    : type  – CommandType ordinal (0–3)
+  /// Byte  3    : id[0] – first ASCII byte of [id]
+  /// Byte  4    : id[1] – second ASCII byte (or 0x00 for single-char IDs)
+  /// Byte  5    : MSB   – value >> 8
+  /// Byte  6    : LSB   – value & 0xFF
+  /// Byte  7    : 0x55  – frame footer / end-of-packet sentinel
+  /// ```
+  Uint8List toUsbBytes() {
+    final clamped = value.clamp(-32768, 32767);
+    final msb = (clamped >> 8) & 0xFF;
+    final lsb = clamped & 0xFF;
+
+    final idB0 = id.isNotEmpty ? id.codeUnitAt(0) & 0xFF : 0x00;
+    final idB1 = id.length > 1 ? id.codeUnitAt(1) & 0xFF : 0x00;
+
+    return Uint8List.fromList([
+      kFrameHeader, // 0xAA
+      kProtoVersion, // 0x01
+      type.index, // 0-3
+      idB0, // id byte 0
+      idB1, // id byte 1
+      msb, // value MSB
+      lsb, // value LSB
+      kFrameFooter, // 0x55
+    ]);
+  }
+
+  // ── Bluetooth / BLE serialiser ──────────────────────────────────────────────
+
+  /// BLE characteristic write payload.
+  ///
+  /// Identical wire format to [toUsbBytes] so the host-side decoder is shared.
+  /// Use `withoutResponse: true` on non-critical button events for throughput;
+  /// flip to `false` for rumble / config commands that need a GATT ACK.
+  Uint8List toBleBytes() => toUsbBytes();
+
+  // ── Debug ───────────────────────────────────────────────────────────────────
+
+  @override
+  String toString() =>
+      'GamepadCommand(type:${type.name}, id:$id, value:$value, '
+      'ts:${timestamp.millisecondsSinceEpoch})';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GamepadCommand &&
+          other.type == type &&
+          other.id == id &&
+          other.value == value;
+
+  @override
+  int get hashCode => Object.hash(type, id, value);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Convenience constructors (factory helpers used by the UI layer)
+// ─────────────────────────────────────────────────────────────────────────────
+
+extension GamepadCommandFactory on GamepadCommand {
+  /// Shorthand for a digital button press (value = 1).
+  static GamepadCommand buttonDown(String id) =>
+      GamepadCommand(type: CommandType.button, id: id, value: 1);
+
+  /// Shorthand for a digital button release (value = 0).
+  static GamepadCommand buttonUp(String id) =>
+      GamepadCommand(type: CommandType.button, id: id, value: 0);
+
+  /// Shorthand for an analogue axis update.
+  static GamepadCommand axis(String id, int value) =>
+      GamepadCommand(type: CommandType.axis, id: id, value: value);
+
+  /// Shorthand for a D-pad direction (0-7 clockwise from North, 8 = centre).
+  static GamepadCommand dpad(int direction) =>
+      GamepadCommand(type: CommandType.dpad, id: 'DPAD', value: direction);
+
+  /// Shorthand for a rumble intensity command (0–255).
+  static GamepadCommand rumble({required int left, required int right}) =>
+      GamepadCommand(
+        type: CommandType.rumble,
+        id: 'RUMBLE',
+        value: (left.clamp(0, 15) << 4) | right.clamp(0, 15),
+      );
+
+  static GamepadCommand setProfile(String profileId) {
+    return GamepadCommand(
+      type: CommandType.system,
+      id: 'SET_PROFILE',
+      value: profileId == 'xbox360' ? 0 : 1, // 0 = Xbox 360, 1 = DS4
+    );
+  }
+
+  /// High-precision analog axis update (-1.0 to 1.0).
+  static GamepadCommand axisUpdate(String id, double value) {
+    // TODO: implement UDP axis encoding
+    // Temporarily map to the existing 16-bit signed integer format so the compiler passes
+    final int clamped16Bit = (value * 32767).clamp(-32768, 32767).toInt();
+    return GamepadCommand(type: CommandType.axis, id: id, value: clamped16Bit);
   }
 }
 </file>
@@ -7793,921 +8611,6 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
 }
 </file>
 
-<file path="lib/widgets/shoulder_buttons.dart">
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-
-import '../providers/theme_notifier.dart';
-import '../theme/app_theme.dart';
-
-/// Base class to handle strict Multitouch and properly dispose ValueNotifiers
-class _BaseShoulderButton extends StatefulWidget {
-  final String id;
-  final String label;
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-
-  const _BaseShoulderButton({
-    super.key,
-    required this.id,
-    required this.label,
-    required this.width,
-    required this.height,
-    required this.onSignal,
-  });
-
-  @override
-  State<_BaseShoulderButton> createState() => _BaseShoulderButtonState();
-}
-
-class _BaseShoulderButtonState extends State<_BaseShoulderButton> {
-  late final ValueNotifier<bool> _isPressed;
-
-  @override
-  void initState() {
-    super.initState();
-    _isPressed = ValueNotifier(false);
-  }
-
-  @override
-  void dispose() {
-    _isPressed.dispose();
-    super.dispose();
-  }
-
-  void _handlePointerDown(PointerDownEvent event) {
-    HapticFeedback.lightImpact();
-    _isPressed.value = true;
-    widget.onSignal(widget.id, true);
-  }
-
-  void _handlePointerUpOrCancel(PointerEvent event) {
-    _isPressed.value = false;
-    widget.onSignal(widget.id, false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.watch<ThemeNotifier>();
-    final accent = theme.accentColor;
-
-    return Listener(
-      onPointerDown: _handlePointerDown,
-      onPointerUp: _handlePointerUpOrCancel,
-      onPointerCancel: _handlePointerUpOrCancel,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _isPressed,
-        builder: (context, pressed, child) {
-          return AnimatedScale(
-            scale: pressed ? 0.92 : 1.0,
-            duration: const Duration(milliseconds: 50),
-            child: RepaintBoundary(
-              child: Container(
-                width: widget.width,
-                height: widget.height,
-                decoration: BoxDecoration(
-                  color: AppTheme.kHudSurface,
-                  borderRadius: BorderRadius.circular(widget.width * 0.5),
-                  border: Border.all(
-                    color: pressed ? accent : AppTheme.kHudBorder,
-                    width: 2,
-                  ),
-                  boxShadow: pressed
-                      ? [
-                          BoxShadow(
-                            color: accent.withAlpha(140),
-                            blurRadius: 14,
-                            spreadRadius: 2,
-                          ),
-                        ]
-                      : [],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  widget.label,
-                  style: AppTheme.labelStyle(
-                    // Scales text relative to the button's height
-                    widget.height * 0.35,
-                    color: pressed ? accent : AppTheme.kTextSecondary,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Specific Implementations
-// -----------------------------------------------------------------------------
-
-class LTButton extends StatefulWidget {
-  final bool isXbox;
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-  final void Function(String id, double value)? onAxis;
-
-  const LTButton({
-    super.key,
-    required this.width,
-    required this.height,
-    required this.onSignal,
-    this.onAxis,
-    required this.isXbox,
-  });
-
-  @override
-  State<LTButton> createState() => _LTButtonState();
-}
-
-class _LTButtonState extends State<LTButton> {
-  late final ValueNotifier<bool> _isPressed;
-  double _lastSent = 0.0;
-  final String _id = 'ABS_Z';
-
-  @override
-  void initState() {
-    super.initState();
-    _isPressed = ValueNotifier(false);
-  }
-
-  @override
-  void dispose() {
-    _isPressed.dispose();
-    super.dispose();
-  }
-
-  void _updatePressureFromEvent(PointerEvent e) {
-    final localY = e.localPosition.dy.clamp(0.0, widget.height);
-    final pressure = (localY / widget.height).clamp(0.0, 1.0);
-    if ((pressure - _lastSent).abs() >= 0.01) {
-      widget.onAxis?.call(_id, pressure);
-      _lastSent = pressure;
-    }
-  }
-
-  void _handlePointerDown(PointerDownEvent event) {
-    HapticFeedback.lightImpact();
-    _isPressed.value = true;
-    widget.onSignal(_id, true);
-    _updatePressureFromEvent(event);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    _updatePressureFromEvent(event);
-  }
-
-  void _handlePointerUpOrCancel(PointerEvent event) {
-    _isPressed.value = false;
-    widget.onSignal(_id, false);
-    widget.onAxis?.call(_id, 0.0);
-    _lastSent = 0.0;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.watch<ThemeNotifier>();
-    final accent = theme.accentColor;
-
-    return Listener(
-      onPointerDown: _handlePointerDown,
-      onPointerMove: _handlePointerMove,
-      onPointerUp: _handlePointerUpOrCancel,
-      onPointerCancel: _handlePointerUpOrCancel,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _isPressed,
-        builder: (context, pressed, child) {
-          return AnimatedScale(
-            scale: pressed ? 0.92 : 1.0,
-            duration: const Duration(milliseconds: 50),
-            child: RepaintBoundary(
-              child: Container(
-                width: widget.width,
-                height: widget.height,
-                decoration: BoxDecoration(
-                  color: AppTheme.kHudSurface,
-                  borderRadius: BorderRadius.circular(widget.width * 0.5),
-                  border: Border.all(
-                    color: pressed ? accent : AppTheme.kHudBorder,
-                    width: 2,
-                  ),
-                  boxShadow: pressed
-                      ? [
-                          BoxShadow(
-                            color: accent.withAlpha(140),
-                            blurRadius: 14,
-                            spreadRadius: 2,
-                          ),
-                        ]
-                      : [],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  widget.isXbox ? 'LT' : 'L2',
-                  style: AppTheme.labelStyle(
-                    widget.height * 0.35,
-                    color: pressed ? accent : AppTheme.kTextSecondary,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class RTButton extends StatefulWidget {
-  final bool isXbox;
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-  final void Function(String id, double value)? onAxis;
-
-  const RTButton({
-    super.key,
-    required this.width,
-    required this.height,
-    required this.onSignal,
-    this.onAxis,
-    required this.isXbox,
-  });
-
-  @override
-  State<RTButton> createState() => _RTButtonState();
-}
-
-class _RTButtonState extends State<RTButton> {
-  late final ValueNotifier<bool> _isPressed;
-  double _lastSent = 0.0;
-  final String _id = 'ABS_RZ';
-
-  @override
-  void initState() {
-    super.initState();
-    _isPressed = ValueNotifier(false);
-  }
-
-  @override
-  void dispose() {
-    _isPressed.dispose();
-    super.dispose();
-  }
-
-  void _updatePressureFromEvent(PointerEvent e) {
-    final localY = e.localPosition.dy.clamp(0.0, widget.height);
-    final pressure = (localY / widget.height).clamp(0.0, 1.0);
-    if ((pressure - _lastSent).abs() >= 0.01) {
-      widget.onAxis?.call(_id, pressure);
-      _lastSent = pressure;
-    }
-  }
-
-  void _handlePointerDown(PointerDownEvent event) {
-    HapticFeedback.lightImpact();
-    _isPressed.value = true;
-    widget.onSignal(_id, true);
-    _updatePressureFromEvent(event);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    _updatePressureFromEvent(event);
-  }
-
-  void _handlePointerUpOrCancel(PointerEvent event) {
-    _isPressed.value = false;
-    widget.onSignal(_id, false);
-    widget.onAxis?.call(_id, 0.0);
-    _lastSent = 0.0;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.watch<ThemeNotifier>();
-    final accent = theme.accentColor;
-
-    return Listener(
-      onPointerDown: _handlePointerDown,
-      onPointerMove: _handlePointerMove,
-      onPointerUp: _handlePointerUpOrCancel,
-      onPointerCancel: _handlePointerUpOrCancel,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _isPressed,
-        builder: (context, pressed, child) {
-          return AnimatedScale(
-            scale: pressed ? 0.92 : 1.0,
-            duration: const Duration(milliseconds: 50),
-            child: RepaintBoundary(
-              child: Container(
-                width: widget.width,
-                height: widget.height,
-                decoration: BoxDecoration(
-                  color: AppTheme.kHudSurface,
-                  borderRadius: BorderRadius.circular(widget.width * 0.5),
-                  border: Border.all(
-                    color: pressed ? accent : AppTheme.kHudBorder,
-                    width: 2,
-                  ),
-                  boxShadow: pressed
-                      ? [
-                          BoxShadow(
-                            color: accent.withAlpha(140),
-                            blurRadius: 14,
-                            spreadRadius: 2,
-                          ),
-                        ]
-                      : [],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  widget.isXbox ? 'RT' : 'R2',
-                  style: AppTheme.labelStyle(
-                    widget.height * 0.35,
-                    color: pressed ? accent : AppTheme.kTextSecondary,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class LBButton extends StatelessWidget {
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-  final bool isXbox;
-
-  const LBButton({
-    super.key,
-    required this.width,
-    required this.height,
-    required this.onSignal,
-    required this.isXbox,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _BaseShoulderButton(
-      key: key,
-      id: 'BTN_TL',
-      label: isXbox ? 'LB' : 'L1',
-      width: width,
-      height: height,
-      onSignal: onSignal,
-    );
-  }
-}
-
-class RBButton extends StatelessWidget {
-  final bool isXbox;
-  final double width;
-  final double height;
-  final void Function(String id, bool isPressed) onSignal;
-
-  const RBButton({
-    super.key,
-    required this.width,
-    required this.height,
-    required this.onSignal,
-    required this.isXbox,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _BaseShoulderButton(
-      key: key,
-      id: 'BTN_TR',
-      label: isXbox ? 'RB' : 'R1',
-      width: width,
-      height: height,
-      onSignal: onSignal,
-    );
-  }
-}
-</file>
-
-<file path="linux/flutter/generated_plugins.cmake">
-#
-# Generated file, do not edit.
-#
-
-list(APPEND FLUTTER_PLUGIN_LIST
-)
-
-list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  jni
-)
-
-set(PLUGIN_BUNDLED_LIBRARIES)
-
-foreach(plugin ${FLUTTER_PLUGIN_LIST})
-  add_subdirectory(flutter/ephemeral/.plugin_symlinks/${plugin}/linux plugins/${plugin})
-  target_link_libraries(${BINARY_NAME} PRIVATE ${plugin}_plugin)
-  list(APPEND PLUGIN_BUNDLED_LIBRARIES $<TARGET_FILE:${plugin}_plugin>)
-  list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${plugin}_bundled_libraries})
-endforeach(plugin)
-
-foreach(ffi_plugin ${FLUTTER_FFI_PLUGIN_LIST})
-  add_subdirectory(flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/linux plugins/${ffi_plugin})
-  list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${ffi_plugin}_bundled_libraries})
-endforeach(ffi_plugin)
-</file>
-
-<file path="test/widget_test.dart">
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:gamepad_app/main.dart';
-
-void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Set up a mock SharedPreferences for testing
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(GamepadApp(prefs: prefs));
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
-}
-</file>
-
-<file path="windows/flutter/generated_plugin_registrant.cc">
-//
-//  Generated file. Do not edit.
-//
-
-// clang-format off
-
-#include "generated_plugin_registrant.h"
-
-#include <permission_handler_windows/permission_handler_windows_plugin.h>
-
-void RegisterPlugins(flutter::PluginRegistry* registry) {
-  PermissionHandlerWindowsPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
-}
-</file>
-
-<file path="lib/main.dart">
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
-
-import 'models/layout_notifier.dart';
-import 'providers/theme_notifier.dart';
-import 'screens/gamepad_screen.dart';
-import 'services/connectivity_service.dart';
-import 'theme/app_theme.dart';
-import 'providers/settings_notifier.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Load SharedPreferences before rendering any UI to prevent null pointer exceptions
-  final prefs = await SharedPreferences.getInstance();
-
-  if (Platform.isAndroid) {
-    await [Permission.bluetoothScan, Permission.bluetoothConnect].request();
-  }
-
-  // Lock the application to landscape mode natively
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeRight,
-    DeviceOrientation.landscapeLeft,
-  ]);
-
-  // Enforce Immersive Sticky Mode for gamepads to prevent accidental edge-swipes
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
-  // All async initialization complete; now render the app
-  runApp(GamepadApp(prefs: prefs));
-}
-
-class GamepadApp extends StatelessWidget {
-  final SharedPreferences prefs;
-
-  const GamepadApp({Key? key, required this.prefs}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    // Inject the state providers at the very top of the widget tree
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
-        ChangeNotifierProvider(create: (_) => LayoutNotifier(prefs)),
-        ChangeNotifierProvider(create: (_) => SettingsNotifier(prefs)),
-        ChangeNotifierProxyProvider<SettingsNotifier, ConnectivityService>(
-          create: (context) {
-            final settings = context.read<SettingsNotifier>();
-            return ConnectivityService(
-              wifiHost: settings.wifiHost,
-              wifiPort: settings.wifiPort,
-            );
-          },
-          update: (_, settings, previous) {
-            previous!.updateWifiTarget(settings.wifiHost, settings.wifiPort);
-            return previous;
-          },
-        ),
-      ],
-      child: ScreenUtilInit(
-        // Flipped to Landscape dimensions (Width: 844, Height: 390)
-        designSize: const Size(844, 390),
-        minTextAdapt: true,
-        builder: (context, child) {
-          return MaterialApp(
-            title: 'CTRLFORGE',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              scaffoldBackgroundColor: AppTheme.kBackground,
-              brightness: Brightness.dark,
-            ),
-            home: const GamepadScreen(),
-          );
-        },
-      ),
-    );
-  }
-}
-</file>
-
-<file path="lib/models/layout_notifier.dart">
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-class LayoutNotifier extends ChangeNotifier {
-  final SharedPreferences _prefs;
-
-  // Xbox defaults — (left_fraction, top_fraction) of each widget's top-left corner
-  static const Map<String, Offset> _xboxDefaults = {
-    'lt': Offset(0.15, 0.02),
-    'lb': Offset(0.23, 0.02),
-    'rt': Offset(0.61, 0.02),
-    'rb': Offset(0.69, 0.02),
-    'l_stick': Offset(0.05, 0.28),
-    'dpad': Offset(0.18, 0.67),
-    'buttons': Offset(0.53, 0.28),
-    'r_stick': Offset(0.64, 0.67),
-    'center': Offset(0.35, 0.72),
-  };
-
-  static const Map<String, Offset> _psDefaults = {
-    'lt': Offset(0.15, 0.02),
-    'lb': Offset(0.23, 0.02),
-    'rt': Offset(0.61, 0.02),
-    'rb': Offset(0.69, 0.02),
-    'l_stick': Offset(0.18, 0.67), // PS: stick bottom-left
-    'dpad': Offset(0.05, 0.28), // PS: dpad top-left
-    'buttons': Offset(0.53, 0.28),
-    'r_stick': Offset(0.64, 0.67),
-    'center': Offset(0.35, 0.72),
-  };
-
-  late bool _isXbox;
-  late Map<String, Offset> _positions;
-  bool _isEditing = false;
-
-  final Map<String, bool> _visibility = {
-    'dpad': true,
-    'l_stick': true,
-    'buttons': true,
-    'r_stick': true,
-    'lt': true,
-    'lb': true,
-    'rt': true,
-    'rb': true,
-    'select': true,
-    'start': true,
-  };
-
-  LayoutNotifier(this._prefs) {
-    _isXbox = _prefs.getBool('isXbox') ?? true;
-    _positions = _loadPositions();
-
-    // Parse visibility settings
-    final visList = _prefs.getStringList('visibility') ?? [];
-    if (visList.isNotEmpty) {
-      for (var item in visList) {
-        final parts = item.split(':');
-        if (parts.length == 2) {
-          _visibility[parts[0]] = parts[1] == 'true';
-        }
-      }
-    }
-  }
-
-  bool get isXbox => _isXbox;
-  bool get isEditing => _isEditing;
-  bool isVisible(String key) => _visibility[key] ?? true;
-
-  Offset getPos(String key) =>
-      _positions[key] ?? (_isXbox ? _xboxDefaults[key]! : _psDefaults[key]!);
-
-  void toggleLayout() {
-    _isXbox = !_isXbox;
-    // Reset positions to canonical defaults for the new layout
-    _positions = Map.of(_isXbox ? _xboxDefaults : _psDefaults);
-    _savePositions();
-    _prefs.setBool('isXbox', _isXbox);
-    notifyListeners();
-  }
-
-  void updatePosition(String key, Offset fractionOffset) {
-    // Clamp to prevent widgets from going off-screen
-    _positions[key] = Offset(
-      fractionOffset.dx.clamp(0.0, 0.9),
-      fractionOffset.dy.clamp(0.0, 0.9),
-    );
-    _savePositions();
-    notifyListeners();
-  }
-
-  void toggleEditing() {
-    _isEditing = !_isEditing;
-    notifyListeners();
-  }
-
-  void resetPositions() {
-    _positions = Map.of(_isXbox ? _xboxDefaults : _psDefaults);
-    _savePositions();
-    notifyListeners();
-  }
-
-  void toggleVisibility(String key) {
-    _visibility[key] = !(_visibility[key] ?? true);
-    _prefs.setStringList(
-      'visibility',
-      _visibility.entries.map((e) => '${e.key}:${e.value}').toList(),
-    );
-    notifyListeners();
-  }
-
-  void setEditing(bool val) {
-    _isEditing = val;
-    notifyListeners();
-  }
-
-  // Persist: store each key as 'pos_KEY_x' and 'pos_KEY_y'
-  Map<String, Offset> _loadPositions() {
-    final defaults = _isXbox ? _xboxDefaults : _psDefaults;
-    final result = <String, Offset>{};
-    for (final key in defaults.keys) {
-      final x = _prefs.getDouble('pos_${key}_x') ?? defaults[key]!.dx;
-      final y = _prefs.getDouble('pos_${key}_y') ?? defaults[key]!.dy;
-      result[key] = Offset(x, y);
-    }
-    return result;
-  }
-
-  void _savePositions() {
-    for (final entry in _positions.entries) {
-      _prefs.setDouble('pos_${entry.key}_x', entry.value.dx);
-      _prefs.setDouble('pos_${entry.key}_y', entry.value.dy);
-    }
-  }
-}
-</file>
-
-<file path="lib/services/gamepad_command.dart">
-// lib/services/gamepad_command.dart
-//
-// Immutable value-object that carries one virtual gamepad event and knows
-// how to serialise itself for every transport channel.
-
-import 'dart:typed_data';
-
-import 'package:flutter/foundation.dart'; // @immutable
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Command type taxonomy
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Coarse category of a gamepad input event.
-enum CommandType {
-  button, // digital: A / B / X / Y / shoulder / start / select …
-  axis,   // analogue stick axis: LS_X, LS_Y, RS_X, RS_Y, LT, RT
-  dpad,   // 8-way hat switch: up / down / left / right / diagonals
-  rumble, // force-feedback intensity command
-  system,
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Wire-format constants (keep in sync with host-side decoder)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// USB/BLE frame header byte marking the start of every packet.
-const int kFrameHeader = 0xAA;
-
-/// USB/BLE frame footer / end-of-packet sentinel.
-const int kFrameFooter = 0x55;
-
-/// Protocol version embedded in every packet.
-const int kProtoVersion = 0x01;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// GamepadCommand
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// A single input event emitted by the virtual gamepad UI layer.
-///
-/// ### Value ranges
-/// | [type]          | [value]                                  |
-/// |-----------------|------------------------------------------|
-/// | [CommandType.button] | 0 = released, 1 = pressed           |
-/// | [CommandType.axis]   | −32 768 … 32 767 (signed 16-bit)    |
-/// | [CommandType.dpad]   | 0–7 clockwise from North, 8 = centre |
-/// | [CommandType.rumble] | 0 (off) … 255 (max)                  |
-@immutable
-class GamepadCommand {
-  const GamepadCommand({
-    required this.type,
-    required this.id,
-    this.value = 0,
-    DateTime? timestamp,
-  }) : _timestamp = timestamp;
-
-  /// What kind of input this is.
-  final CommandType type;
-
-  /// Human-readable identifier matching the UI widget label.
-  /// Examples: `'A'`, `'B'`, `'LT'`, `'LS_X'`, `'DPAD'`, `'RUMBLE_L'`.
-  final String id;
-
-  /// Payload value (range depends on [type] — see class doc).
-  final int value;
-
-  final DateTime? _timestamp;
-
-  /// Wall-clock timestamp of this event (defaults to now on first access).
-  DateTime get timestamp => _timestamp ?? DateTime.now();
-
-  // ── Wi-Fi / TCP serialiser ──────────────────────────────────────────────────
-
-  /// Newline-delimited JSON frame sent over the TCP socket.
-  ///
-  /// ```json
-  /// {"v":1,"type":"button","id":"A","value":1,"ts":1718123456789}
-  /// ```
-  String toJsonFrame() {
-    final map = <String, dynamic>{
-      'v': kProtoVersion,
-      'type': type.name,
-      'id': id,
-      'value': value,
-      'ts': timestamp.millisecondsSinceEpoch,
-    };
-    // Manual encoding avoids a hard dependency on dart:convert at model level.
-    // If you already import dart:convert elsewhere, replace with jsonEncode(map).
-    final parts = map.entries
-        .map((e) => '"${e.key}":${e.value is String ? '"${e.value}"' : e.value}')
-        .join(',');
-    return '{$parts}\n';
-  }
-
-  // ── USB / Serial serialiser ─────────────────────────────────────────────────
-
-  /// Compact 8-byte binary frame for USB serial transport.
-  ///
-  /// ```
-  /// Byte  0    : 0xAA  – frame header
-  /// Byte  1    : 0x01  – protocol version
-  /// Byte  2    : type  – CommandType ordinal (0–3)
-  /// Byte  3    : id[0] – first ASCII byte of [id]
-  /// Byte  4    : id[1] – second ASCII byte (or 0x00 for single-char IDs)
-  /// Byte  5    : MSB   – value >> 8
-  /// Byte  6    : LSB   – value & 0xFF
-  /// Byte  7    : 0x55  – frame footer / end-of-packet sentinel
-  /// ```
-  Uint8List toUsbBytes() {
-    final clamped = value.clamp(-32768, 32767);
-    final msb = (clamped >> 8) & 0xFF;
-    final lsb = clamped & 0xFF;
-
-    final idB0 = id.isNotEmpty ? id.codeUnitAt(0) & 0xFF : 0x00;
-    final idB1 = id.length > 1 ? id.codeUnitAt(1) & 0xFF : 0x00;
-
-    return Uint8List.fromList([
-      kFrameHeader,       // 0xAA
-      kProtoVersion,      // 0x01
-      type.index,         // 0-3
-      idB0,               // id byte 0
-      idB1,               // id byte 1
-      msb,                // value MSB
-      lsb,                // value LSB
-      kFrameFooter,       // 0x55
-    ]);
-  }
-
-  // ── Bluetooth / BLE serialiser ──────────────────────────────────────────────
-
-  /// BLE characteristic write payload.
-  ///
-  /// Identical wire format to [toUsbBytes] so the host-side decoder is shared.
-  /// Use `withoutResponse: true` on non-critical button events for throughput;
-  /// flip to `false` for rumble / config commands that need a GATT ACK.
-  Uint8List toBleBytes() => toUsbBytes();
-
-  // ── Debug ───────────────────────────────────────────────────────────────────
-
-  @override
-  String toString() =>
-      'GamepadCommand(type:${type.name}, id:$id, value:$value, '
-          'ts:${timestamp.millisecondsSinceEpoch})';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is GamepadCommand &&
-              other.type == type &&
-              other.id == id &&
-              other.value == value;
-
-  @override
-  int get hashCode => Object.hash(type, id, value);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Convenience constructors (factory helpers used by the UI layer)
-// ─────────────────────────────────────────────────────────────────────────────
-
-extension GamepadCommandFactory on GamepadCommand {
-  /// Shorthand for a digital button press (value = 1).
-  static GamepadCommand buttonDown(String id) =>
-      GamepadCommand(type: CommandType.button, id: id, value: 1);
-
-  /// Shorthand for a digital button release (value = 0).
-  static GamepadCommand buttonUp(String id) =>
-      GamepadCommand(type: CommandType.button, id: id, value: 0);
-
-  /// Shorthand for an analogue axis update.
-  static GamepadCommand axis(String id, int value) =>
-      GamepadCommand(type: CommandType.axis, id: id, value: value);
-
-  /// Shorthand for a D-pad direction (0-7 clockwise from North, 8 = centre).
-  static GamepadCommand dpad(int direction) =>
-      GamepadCommand(type: CommandType.dpad, id: 'DPAD', value: direction);
-
-  /// Shorthand for a rumble intensity command (0–255).
-  static GamepadCommand rumble({required int left, required int right}) =>
-      GamepadCommand(
-          type: CommandType.rumble,
-          id: 'RUMBLE',
-          value: (left.clamp(0, 15) << 4) | right.clamp(0, 15));
-
-  static GamepadCommand setProfile(String profileId) {
-    return GamepadCommand(
-      type: CommandType.system,
-      id: 'SET_PROFILE',
-      value: profileId == 'xbox360' ? 0 : 1,  // 0 = Xbox 360, 1 = DS4
-    );
-  }
-
-  /// High-precision analog axis update (-1.0 to 1.0).
-  static GamepadCommand axisUpdate(String id, double value) {
-    // TODO: implement UDP axis encoding
-    // Temporarily map to the existing 16-bit signed integer format so the compiler passes
-    final int clamped16Bit = (value * 32767).clamp(-32768, 32767).toInt();
-    return GamepadCommand(type: CommandType.axis, id: id, value: clamped16Bit);
-  }
-}
-</file>
-
 <file path="pubspec.lock">
 # Generated by pub
 # See https://dart.dev/tools/pub/glossary#lockfile
@@ -8784,6 +8687,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.9"
+  device_info_plus:
+    dependency: "direct main"
+    description:
+      name: device_info_plus
+      sha256: "77f757b789ff68e4eaf9c56d1752309bd9f7ad557cb105b938a7f8eb89e59110"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.1.2"
+  device_info_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: device_info_plus_platform_interface
+      sha256: e1ea89119e34903dca74b883d0dd78eb762814f97fb6c76f35e9ff74d261a18f
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.3"
   fake_async:
     dependency: transitive
     description:
@@ -8813,14 +8732,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_blue_plus:
+  flutter_bluetooth_serial:
     dependency: "direct main"
     description:
-      name: flutter_blue_plus
-      sha256: "1e53ba4b60c1097396fbeafdd31eac5c20b0876b56a0c1ab6f3dec5ee06d44d7"
+      name: flutter_bluetooth_serial
+      sha256: "85ae82c4099b2b1facdc54e75e1bcfa88dc7f719e55dc886bb0b648cb16636b1"
       url: "https://pub.dev"
     source: hosted
-    version: "1.32.0"
+    version: "0.4.0"
   flutter_foreground_task:
     dependency: "direct main"
     description:
@@ -9292,14 +9211,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
-  wifi_iot:
-    dependency: "direct main"
+  win32:
+    dependency: transitive
     description:
-      name: wifi_iot
-      sha256: "0861aed0c0afd6031b4337811d31cdd181c594a8a2c73e94826ea21d2cb4707b"
+      name: win32
+      sha256: d7cb55e04cd34096cd3a79b3330245f54cb96a370a1c27adb3c84b917de8b08e
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.19+2"
+    version: "5.15.0"
+  win32_registry:
+    dependency: transitive
+    description:
+      name: win32_registry
+      sha256: "21ec76dfc731550fd3e2ce7a33a9ea90b828fdf19a5c3bcf556fa992cfa99852"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.5"
   xdg_directories:
     dependency: transitive
     description:
@@ -9336,8 +9263,6 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  flutter_blue_plus: 1.32.0
-  wifi_iot: ^0.3.19+2
   usb_serial: ^0.5.2
   flutter_screenutil: ^5.9.3
   provider: ^6.1.5+1
@@ -9346,6 +9271,8 @@ dependencies:
   permission_handler: ^11.3.1
   multicast_dns: ^0.3.2+3
   flutter_foreground_task: ^8.13.0
+  flutter_bluetooth_serial: ^0.4.0
+  device_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
@@ -9382,6 +9309,143 @@ foreach(ffi_plugin ${FLUTTER_FFI_PLUGIN_LIST})
   add_subdirectory(flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/windows plugins/${ffi_plugin})
   list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${ffi_plugin}_bundled_libraries})
 endforeach(ffi_plugin)
+</file>
+
+<file path="lib/models/layout_notifier.dart">
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class LayoutNotifier extends ChangeNotifier {
+  final SharedPreferences _prefs;
+
+  // Xbox defaults — (left_fraction, top_fraction) of each widget's top-left corner
+  static const Map<String, Offset> _xboxDefaults = {
+    'lt': Offset(0.15, 0.02),
+    'lb': Offset(0.23, 0.02),
+    'rt': Offset(0.61, 0.02),
+    'rb': Offset(0.69, 0.02),
+    'l_stick': Offset(0.05, 0.28),
+    'dpad': Offset(0.18, 0.67),
+    'buttons': Offset(0.53, 0.28),
+    'r_stick': Offset(0.64, 0.67),
+    'center': Offset(0.35, 0.72),
+  };
+
+  static const Map<String, Offset> _psDefaults = {
+    'lt': Offset(0.15, 0.02),
+    'lb': Offset(0.23, 0.02),
+    'rt': Offset(0.61, 0.02),
+    'rb': Offset(0.69, 0.02),
+    'l_stick': Offset(0.18, 0.67), // PS: stick bottom-left
+    'dpad': Offset(0.05, 0.28), // PS: dpad top-left
+    'buttons': Offset(0.53, 0.28),
+    'r_stick': Offset(0.64, 0.67),
+    'center': Offset(0.35, 0.72),
+  };
+
+  late bool _isXbox;
+  late Map<String, Offset> _positions;
+  bool _isEditing = false;
+
+  final Map<String, bool> _visibility = {
+    'dpad': true,
+    'l_stick': true,
+    'buttons': true,
+    'r_stick': true,
+    'lt': true,
+    'lb': true,
+    'rt': true,
+    'rb': true,
+    'select': true,
+    'start': true,
+  };
+
+  LayoutNotifier(this._prefs) {
+    _isXbox = _prefs.getBool('isXbox') ?? true;
+    _positions = _loadPositions();
+
+    // Parse visibility settings
+    final visList = _prefs.getStringList('visibility') ?? [];
+    if (visList.isNotEmpty) {
+      for (var item in visList) {
+        final parts = item.split(':');
+        if (parts.length == 2) {
+          _visibility[parts[0]] = parts[1] == 'true';
+        }
+      }
+    }
+  }
+
+  bool get isXbox => _isXbox;
+  bool get isEditing => _isEditing;
+  bool isVisible(String key) => _visibility[key] ?? true;
+
+  Offset getPos(String key) =>
+      _positions[key] ?? (_isXbox ? _xboxDefaults[key]! : _psDefaults[key]!);
+
+  void toggleLayout() {
+    _isXbox = !_isXbox;
+    // Reset positions to canonical defaults for the new layout
+    _positions = Map.of(_isXbox ? _xboxDefaults : _psDefaults);
+    _savePositions();
+    _prefs.setBool('isXbox', _isXbox);
+    notifyListeners();
+  }
+
+  void updatePosition(String key, Offset fractionOffset) {
+    // Clamp to prevent widgets from going off-screen
+    _positions[key] = Offset(
+      fractionOffset.dx.clamp(0.0, 0.9),
+      fractionOffset.dy.clamp(0.0, 0.9),
+    );
+    _savePositions();
+    notifyListeners();
+  }
+
+  void toggleEditing() {
+    _isEditing = !_isEditing;
+    notifyListeners();
+  }
+
+  void resetPositions() {
+    _positions = Map.of(_isXbox ? _xboxDefaults : _psDefaults);
+    _savePositions();
+    notifyListeners();
+  }
+
+  void toggleVisibility(String key) {
+    _visibility[key] = !(_visibility[key] ?? true);
+    _prefs.setStringList(
+      'visibility',
+      _visibility.entries.map((e) => '${e.key}:${e.value}').toList(),
+    );
+    notifyListeners();
+  }
+
+  void setEditing(bool val) {
+    _isEditing = val;
+    notifyListeners();
+  }
+
+  // Persist: store each key as 'pos_KEY_x' and 'pos_KEY_y'
+  Map<String, Offset> _loadPositions() {
+    final defaults = _isXbox ? _xboxDefaults : _psDefaults;
+    final result = <String, Offset>{};
+    for (final key in defaults.keys) {
+      final x = _prefs.getDouble('pos_${key}_x') ?? defaults[key]!.dx;
+      final y = _prefs.getDouble('pos_${key}_y') ?? defaults[key]!.dy;
+      result[key] = Offset(x, y);
+    }
+    return result;
+  }
+
+  void _savePositions() {
+    for (final entry in _positions.entries) {
+      _prefs.setDouble('pos_${entry.key}_x', entry.value.dx);
+      _prefs.setDouble('pos_${entry.key}_y', entry.value.dy);
+    }
+  }
+}
 </file>
 
 <file path="lib/screens/gamepad_screen.dart">
@@ -9615,14 +9679,14 @@ class _GamepadScreenState extends State<GamepadScreen>
 <file path="lib/services/connectivity_service.dart">
 // lib/services/connectivity_service.dart
 //
-// Trimode ConnectivityService — routes virtual gamepad commands to the correct
-// hardware channel (Wi-Fi TCP, Bluetooth BLE, or USB Serial) and exposes a
-// single ChangeNotifier surface for the UI layer.
+// Tri-mode ConnectivityService — routes virtual gamepad commands to Wi-Fi TCP,
+// Bluetooth Classic SPP, or USB (ADB tunnel), and exposes a ChangeNotifier
+// surface for the UI.
 //
-// ── Required pubspec.yaml dependencies ────────────────────────────────────────
-//   flutter_blue_plus: ^1.32.0   # BLE
-//   usb_serial: ^0.5.1           # USB serial (Android / Windows / Linux)
-//   # dart:io is SDK-bundled — no additional dep for TCP
+// ── pubspec.yaml dependencies ─────────────────────────────────────────────────
+//   flutter_bluetooth_serial: ^0.4.0   # Classic BT SPP
+//   usb_serial: ^0.5.1                 # USB hot-plug events (Android)
+//   # dart:io — SDK-bundled
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'dart:async';
@@ -9631,11 +9695,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:multicast_dns/multicast_dns.dart';
 import 'package:usb_serial/usb_serial.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
-import 'gamepad_command.dart'; // GamepadCommand, CommandType
+import 'gamepad_command.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public enumerations
@@ -9647,7 +9710,7 @@ enum ActiveMode { wifi, bluetooth, usb }
 /// Fine-grained FSM state exposed to the UI for badge / icon rendering.
 enum ServiceConnectionState {
   disconnected,
-  scanning, // BLE scan in progress
+  scanning,
   connecting,
   connected,
   reconnecting,
@@ -9683,24 +9746,20 @@ class ConnectivityService extends ChangeNotifier {
   bool _userRequestedDisconnect = false;
   Timer? _heartbeatTimer;
 
-  ConnectivityService({
-    String wifiHost = '192.168.1.100',
-    int wifiPort = 5000,
-    String? bleDeviceName,
-  }) : _wifiHost = wifiHost,
-       _wifiPort = wifiPort,
-       _bleTargetName = bleDeviceName {
+  ConnectivityService({String wifiHost = '192.168.1.100', int wifiPort = 5000})
+    : _wifiHost = wifiHost,
+      _wifiPort = wifiPort {
     _initUsbEventListener();
   }
 
-  /// Start listening for USB hot-plug events immediately at service creation,
-  /// so attach events are received even before connect() is called.
+  /// Start listening for USB hot-plug events at construction time so attach
+  /// events are received before connect() is called.
   void _initUsbEventListener() {
     _usbEventSub = UsbSerial.usbEventStream?.listen(_onUsbEvent);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  Public state (consumed by UI via context.watch / Consumer)
+  //  Public state
   // ══════════════════════════════════════════════════════════════════════════
 
   ActiveMode _activeMode = ActiveMode.wifi;
@@ -9798,7 +9857,10 @@ class ConnectivityService extends ChangeNotifier {
       case ActiveMode.bluetooth:
         await _bleDisconnect();
       case ActiveMode.usb:
-        await _usbDisconnect();
+        // USB (ADB) tunnels over TCP — tear down the socket, then re-arm
+        // the hot-plug listener for the next attach event.
+        await _wifiDisconnect();
+        _initUsbEventListener();
     }
     _setState(ServiceConnectionState.disconnected, 'Disconnected');
   }
@@ -9816,11 +9878,11 @@ class ConnectivityService extends ChangeNotifier {
     try {
       switch (_activeMode) {
         case ActiveMode.wifi:
+        case ActiveMode.usb:
+          // USB (ADB) mode shares the same TCP stack as Wi-Fi.
           _wifiSend(command);
         case ActiveMode.bluetooth:
           await _bleSend(command);
-        case ActiveMode.usb:
-          await _usbSend(command);
       }
     } catch (e) {
       _record('Send error: $e', level: LogLevel.error);
@@ -9830,26 +9892,20 @@ class ConnectivityService extends ChangeNotifier {
 
   void pauseInput() {
     if (connectionState != ServiceConnectionState.connected) return;
-
     _isInputPaused = true;
     _heartbeatTimer?.cancel();
-
-    // Send a keepalive packet every 5 seconds to prevent TCP idle timeouts.
-    // Use socket.add(utf8.encode()) — NOT socket.write() — to send raw UTF-8 bytes.
-    // socket.write() uses latin-1 encoding and produces malformed packets.
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (_tcpSocket != null) {
-        _tcpSocket!.add(
-          utf8.encode('{"type":"system","id":"PING","value":0}\n'),
-        );
-      }
+    // Keep-alive packet every 5 s to prevent TCP idle timeouts.
+    // Use socket.add(utf8.encode()) — NOT socket.write() — to avoid latin-1 encoding.
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _tcpSocket?.add(
+        utf8.encode('{"type":"system","id":"PING","value":0}\n'),
+      );
     });
   }
 
   void resumeInput() {
     _isInputPaused = false;
     _heartbeatTimer?.cancel();
-
     if (!isConnected && _activeMode == ActiveMode.wifi) {
       _wifiRetryCount = 0;
       connect();
@@ -9857,10 +9913,8 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  ──  Wi-Fi / TCP channel  ────────────────────────────────────────────────
+  //  Wi-Fi / TCP
   // ══════════════════════════════════════════════════════════════════════════
-
-  // ── Configuration ──────────────────────────────────────────────────────────
 
   String _wifiHost;
   int _wifiPort;
@@ -9869,80 +9923,14 @@ class ConnectivityService extends ChangeNotifier {
   static const Duration _wifiReconnectDelay = Duration(seconds: 3);
   static const int _wifiMaxRetries = 5;
 
-  /// mDNS service type advertised by the C# ViGEm server.
-  static const String _mdnsServiceType = '_ctrlforge._tcp';
-
-  /// How long to wait for an mDNS response before falling back to the
-  /// stored host/port.
-  static const Duration _mdnsScanTimeout = Duration(seconds: 4);
-  static const bool _mdnsEnabled = false;
-
   static const int _udpDiscoveryPort = 5354;
   static const Duration _udpDiscoveryTimeout = Duration(seconds: 5);
-
-  // ── State ──────────────────────────────────────────────────────────────────
 
   Socket? _tcpSocket;
   StreamSubscription<Uint8List>? _tcpRxSub;
   Timer? _wifiReconnectTimer;
   int _wifiRetryCount = 0;
   bool _wifiReconnectPending = false;
-
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
-
-  /// Attempt mDNS discovery of the C# server on the local network.
-  ///
-  /// Scans for [_mdnsServiceType] records for up to [_mdnsScanTimeout].
-  /// On success, updates [_wifiHost] and [_wifiPort] in-place.
-  /// On failure (no record found, network error, timeout), leaves the
-  /// existing host/port unchanged so the user's manual entry acts as fallback.
-  Future<void> _tryMdnsDiscovery() async {
-    _record('mDNS: scanning for $_mdnsServiceType…');
-    final client = MDnsClient();
-    try {
-      await client.start();
-
-      // Resolve PTR → SRV → A chain with a hard timeout.
-      await for (final PtrResourceRecord ptr
-          in client
-              .lookup<PtrResourceRecord>(
-                ResourceRecordQuery.serverPointer(_mdnsServiceType),
-              )
-              .timeout(_mdnsScanTimeout, onTimeout: (_) {})) {
-        // Resolve SRV for port
-        await for (final SrvResourceRecord srv
-            in client
-                .lookup<SrvResourceRecord>(
-                  ResourceRecordQuery.service(ptr.domainName),
-                )
-                .timeout(const Duration(seconds: 2), onTimeout: (_) {})) {
-          // Resolve A for IP
-          await for (final IPAddressResourceRecord ip
-              in client
-                  .lookup<IPAddressResourceRecord>(
-                    ResourceRecordQuery.addressIPv4(srv.target),
-                  )
-                  .timeout(const Duration(seconds: 2), onTimeout: (_) {})) {
-            _wifiHost = ip.address.address;
-            _wifiPort = srv.port;
-            _record('mDNS: resolved → $_wifiHost:$_wifiPort');
-            return; // Found — stop scanning
-          }
-        }
-      }
-      _record(
-        'mDNS: no record found — using saved host $_wifiHost:$_wifiPort',
-        level: LogLevel.warning,
-      );
-    } catch (e) {
-      _record(
-        'mDNS: discovery error ($e) — using saved host',
-        level: LogLevel.warning,
-      );
-    } finally {
-      client.stop();
-    }
-  }
 
   Future<void> _tryUdpDiscovery() async {
     _record('UDP: listening for BeastReceiver on port $_udpDiscoveryPort…');
@@ -9963,7 +9951,6 @@ class ConnectivityService extends ChangeNotifier {
       // Server IP comes directly from the UDP source address — no parsing required.
       final serverIp = datagram!.address.address;
 
-      // Optionally validate the payload and read port.
       int? serverPort;
       try {
         final json =
@@ -9992,13 +9979,17 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   Future<void> _wifiConnect() async {
-    await _tryUdpDiscovery(); // auto-fills _wifiHost/_wifiPort if server is broadcasting
-    _record('TCP → $_wifiHost:$_wifiPort');
-    _tcpSocket = await Socket.connect(
-      _wifiHost,
-      _wifiPort,
-      timeout: _wifiConnectTimeout,
-    );
+    // Tear down any stale socket from a previous failed attempt.
+    if (_tcpSocket != null) {
+      await _tcpRxSub?.cancel();
+      _tcpRxSub = null;
+      try {
+        await _tcpSocket?.close();
+      } catch (_) {}
+      _tcpSocket = null;
+    }
+
+    await _tryUdpDiscovery();
 
     _record('TCP → $_wifiHost:$_wifiPort');
     _tcpSocket = await Socket.connect(
@@ -10032,21 +10023,14 @@ class ConnectivityService extends ChangeNotifier {
     _tcpRxSub = null;
     try {
       await _tcpSocket?.close();
-    } catch (_) {
-      /* already closed */
-    }
+    } catch (_) {}
     _tcpSocket = null;
     _record('TCP socket closed');
   }
 
-  // ── Inbound data ───────────────────────────────────────────────────────────
-
   void _onWifiData(Uint8List data) {
-    final text = utf8.decode(data, allowMalformed: true).trim();
-    _record('WiFi RX: $text');
+    _record('WiFi RX: ${utf8.decode(data, allowMalformed: true).trim()}');
   }
-
-  // ── Error / reconnect handling ─────────────────────────────────────────────
 
   void _onWifiError(Object error) {
     _record('TCP error: $error', level: LogLevel.error);
@@ -10063,11 +10047,9 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   void _scheduleWifiReconnect() {
-    // Guard: if a reconnect timer is already pending, ignore the duplicate call.
-    // This prevents _onWifiError + _onWifiDone both firing for a single RST
-    // from scheduling two concurrent reconnect timers.
+    // Guard against duplicate timers when both onError and onDone fire for the
+    // same RST.
     if (_wifiReconnectPending) return;
-
     if (_wifiRetryCount >= _wifiMaxRetries) {
       _setState(
         ServiceConnectionState.error,
@@ -10075,7 +10057,6 @@ class ConnectivityService extends ChangeNotifier {
       );
       return;
     }
-
     _wifiReconnectPending = true;
     _wifiRetryCount++;
     final delay = _wifiReconnectDelay * _wifiRetryCount;
@@ -10096,286 +10077,186 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  ──  Bluetooth / BLE channel  ────────────────────────────────────────────
+  //  Bluetooth Classic SPP
   // ══════════════════════════════════════════════════════════════════════════
+  //
+  // FlutterBluetoothSerial does NOT have a pickDevice() method.
+  // Device selection is a two-step UI flow:
+  //   1. UI calls getBondedDevices() to get the paired device list.
+  //   2. UI shows its own picker, then calls setBluetoothTarget(address, name).
+  //   3. UI calls connect() — _bleConnect() uses the stored address.
+  // ──────────────────────────────────────────────────────────────────────────
 
-  // ── GATT profile UUIDs (override to match your firmware) ──────────────────
+  BluetoothConnection? _btConnection;
+  int _bleRetryCount = 0;
+  static const int _maxBleRetries = 6; // 500 ms → 1 s → 2 s → 4 s → 8 s → 16 s
 
-  static const String kBleServiceUuid = '12345678-1234-1234-1234-1234567890ab';
-  static const String kBleCommandCharUuid =
-      'abcdef01-1234-1234-1234-abcdefabcdef';
-  static const String kBleNotifyCharUuid =
-      'abcdef02-1234-1234-1234-abcdefabcdef';
+  /// Address and display name of the device selected by the UI.
+  String? _bleTargetAddress;
+  String? _bleTargetName;
 
-  // ── Configuration ──────────────────────────────────────────────────────────
+  // ── Public BT helpers for the UI layer ─────────────────────────────────────
 
-  final String? _bleTargetName;
+  /// Returns all Classic BT devices already bonded (paired) to this phone.
+  ///
+  /// Usage in UI:
+  /// ```dart
+  /// final devices = await service.getBondedDevices();
+  /// // … show picker …
+  /// service.setBluetoothTarget(chosen.address, chosen.name);
+  /// service.connect();
+  /// ```
+  Future<List<BluetoothDevice>> getBondedDevices() =>
+      FlutterBluetoothSerial.instance.getBondedDevices();
 
-  static const Duration _bleScanTimeout = Duration(seconds: 10);
-  static const Duration _bleConnectTimeout = Duration(seconds: 15);
+  /// Pre-selects the BT device to connect to.
+  ///
+  /// Must be called (with a valid address) before [connect()] when
+  /// [activeMode] is [ActiveMode.bluetooth].
+  void setBluetoothTarget(String address, [String? name]) {
+    _bleTargetAddress = address;
+    _bleTargetName = name ?? address;
+    _record('BT: target set → ${_bleTargetName ?? address}');
+    notifyListeners();
+  }
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── _bleConnect() ──────────────────────────────────────────────────────────
 
-  BluetoothDevice? _bleDevice;
-  BluetoothCharacteristic? _bleCmdChar;
-  BluetoothCharacteristic? _bleNotifyChar;
-
-  StreamSubscription<BluetoothConnectionState>? _bleConnStateSub;
-  StreamSubscription<List<ScanResult>>? _bleScanSub;
-  StreamSubscription<List<int>>? _bleNotifySub;
-
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
-
+  /// Connects to [_bleTargetAddress] via Classic BT SPP (RFCOMM).
+  ///
+  /// Throws [StateError] if [setBluetoothTarget] has not been called first.
   Future<void> _bleConnect() async {
-    _setState(ServiceConnectionState.scanning, 'BLE: scanning…');
-
-    // ── 1. Scan for the peripheral ──────────────────────────────────────────
-    final completer = Completer<BluetoothDevice>();
-
-    await FlutterBluePlus.startScan(
-      withServices: [Guid(kBleServiceUuid)],
-      timeout: _bleScanTimeout,
-    );
-
-    _bleScanSub = FlutterBluePlus.scanResults.listen((results) {
-      for (final r in results) {
-        final nameMatch =
-            _bleTargetName == null || r.device.platformName == _bleTargetName;
-        if (nameMatch && !completer.isCompleted) {
-          FlutterBluePlus.stopScan();
-          completer.complete(r.device);
-          return;
-        }
-      }
-    });
-
-    _bleDevice = await completer.future.timeout(
-      _bleScanTimeout,
-      onTimeout: () =>
-          throw TimeoutException('BLE: no device found in scan window'),
-    );
-
-    // ── 2. Connect to the peripheral ────────────────────────────────────────
-    _record('BLE: connecting to ${_bleDevice!.platformName}…');
-    await _bleDevice!.connect(timeout: _bleConnectTimeout, autoConnect: false);
-    _record('BLE: connected to ${_bleDevice!.platformName}');
-
-    // ── 3. Monitor connection state ─────────────────────────────────────────
-    _bleConnStateSub = _bleDevice!.connectionState.listen(
-      _onBleConnectionState,
-    );
-
-    // ── 4. Discover characteristics ─────────────────────────────────────────
-    await _discoverBleCharacteristics();
-  }
-
-  Future<void> _discoverBleCharacteristics() async {
-    final services = await _bleDevice!.discoverServices();
-    for (final svc in services) {
-      if (svc.uuid.str.toLowerCase() == kBleServiceUuid.toLowerCase()) {
-        for (final char in svc.characteristics) {
-          final uuid = char.uuid.str.toLowerCase();
-          if (uuid == kBleCommandCharUuid.toLowerCase()) {
-            _bleCmdChar = char;
-            _record('BLE: command characteristic found');
-          } else if (uuid == kBleNotifyCharUuid.toLowerCase()) {
-            _bleNotifyChar = char;
-            await char.setNotifyValue(true);
-            _bleNotifySub = char.lastValueStream.listen(_onBleNotification);
-            _record('BLE: notify characteristic subscribed');
-          }
-        }
-      }
+    final address = _bleTargetAddress;
+    if (address == null) {
+      throw StateError(
+        'BT: no target device — call setBluetoothTarget() before connect()',
+      );
     }
-    if (_bleCmdChar == null) {
-      throw StateError('BLE: command characteristic not found in GATT table');
-    }
-  }
+    final displayName = _bleTargetName ?? address;
 
-  Future<void> _bleSend(GamepadCommand command) async {
-    if (_bleCmdChar == null) throw StateError('BLE: characteristic not ready');
-
-    final bytes = command.toBleBytes();
-    final withoutResponse = command.type != CommandType.rumble;
-
-    await _bleCmdChar!.write(bytes, withoutResponse: withoutResponse);
-    _record(
-      'BLE TX [${withoutResponse ? "NoAck" : "Ack"}]: '
-      '${_hexDump(bytes)}',
-    );
-  }
-
-  Future<void> _bleDisconnect() async {
-    await _bleScanSub?.cancel();
-    await _bleNotifySub?.cancel();
-    await _bleConnStateSub?.cancel();
-    try {
-      await _bleDevice?.disconnect();
-    } catch (_) {
-      /* ignore */
-    }
-    _bleDevice = null;
-    _bleCmdChar = null;
-    _bleNotifyChar = null;
-    _bleScanSub = null;
-    _bleNotifySub = null;
-    _bleConnStateSub = null;
-    _record('BLE disconnected');
-  }
-
-  // ── Inbound / event handlers ───────────────────────────────────────────────
-
-  void _onBleConnectionState(BluetoothConnectionState state) {
-    _record('BLE state → ${state.name}');
-    if (state == BluetoothConnectionState.disconnected) {
-      _bleCmdChar = null;
-      if (_connState == ServiceConnectionState.connected &&
-          !_userRequestedDisconnect) {
-        _setState(
-          ServiceConnectionState.reconnecting,
-          'BLE link dropped — retrying in 3s…',
-        );
-        Future.delayed(const Duration(seconds: 3), () {
-          if (_activeMode == ActiveMode.bluetooth &&
-              _connState == ServiceConnectionState.reconnecting) {
-            connect();
-          }
-        });
-      } else {
-        _setState(ServiceConnectionState.disconnected, 'BLE disconnected');
-      }
-    }
-  }
-
-  void _onBleNotification(List<int> data) {
-    _record('BLE NOTIFY: ${_hexDump(Uint8List.fromList(data))}');
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  //  ──  USB / Serial channel  ───────────────────────────────────────────────
-  // ══════════════════════════════════════════════════════════════════════════
-
-  // ── Configuration ──────────────────────────────────────────────────────────
-
-  static const int _usbBaudRate = 115200;
-  static const int _usbDataBits = UsbPort.DATABITS_8;
-  static const int _usbStopBits = UsbPort.STOPBITS_1;
-  static const int _usbParity = UsbPort.PARITY_NONE;
-  static const int _usbFlowCtrl = UsbPort.FLOW_CONTROL_OFF;
-
-  static const int? kTargetVendorId = null;
-  static const int? kTargetProductId = null;
-
-  // ── State ──────────────────────────────────────────────────────────────────
-
-  UsbPort? _usbPort;
-  StreamSubscription<Uint8List>? _usbRxSub;
-  StreamSubscription<UsbEvent>? _usbEventSub;
-
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
-
-  Future<void> _usbConnect() async {
-    // ── 1. Enumerate attached devices ───────────────────────────────────────
-    final devices = await UsbSerial.listDevices();
-    if (devices.isEmpty) {
-      throw StateError('USB: no serial devices attached');
-    }
-
-    final device = kTargetVendorId != null
-        ? devices.firstWhere(
-            (d) => d.vid == kTargetVendorId && d.pid == kTargetProductId,
-            orElse: () =>
-                throw StateError('USB: target VID/PID device not found'),
-          )
-        : devices.first;
-
-    _record(
-      'USB: device "${device.productName}" '
-      '[VID:0x${device.vid?.toRadixString(16)} '
-      'PID:0x${device.pid?.toRadixString(16)}]',
+    _setState(
+      ServiceConnectionState.connecting,
+      'BT: connecting to $displayName…',
     );
 
-    // ── 2. Open the port ────────────────────────────────────────────────────
-    _usbPort = await device.create();
-    if (_usbPort == null) throw StateError('USB: failed to create UsbPort');
+    // FIX (doc-3 regression): removed the spurious `await _btConnection?.finish()`
+    // that was placed immediately after toAddress(), which closed the connection
+    // the instant it was opened before the listener was ever attached.
+    _btConnection = await BluetoothConnection.toAddress(address);
 
-    final opened = await _usbPort!.open();
-    if (!opened) throw StateError('USB: failed to open port');
-
-    // ── 3. Configure UART parameters ────────────────────────────────────────
-    await _usbPort!.setPortParameters(
-      _usbBaudRate,
-      _usbDataBits,
-      _usbStopBits,
-      _usbParity,
-    );
-    await _usbPort!.setFlowControl(_usbFlowCtrl);
-    _record('USB: port open @ $_usbBaudRate baud 8-N-1');
-
-    // ── 4. Subscribe to RX stream ───────────────────────────────────────────
-    _usbRxSub = _usbPort!.inputStream?.listen(
-      _onUsbData,
-      onError: _onUsbError,
+    _btConnection!.input!.listen(
+      _onBleData,
+      onError: _onBleError,
+      onDone: _onBleDone,
       cancelOnError: false,
     );
 
-    // ── 5. Watch for hot-unplug events ──────────────────────────────────────
-    // _usbEventSub registration is now exclusively handled by _initUsbEventListener().
+    _bleRetryCount = 0;
+    _record('BT: connected to $displayName');
+    _setState(ServiceConnectionState.connected, 'BT: $displayName');
   }
 
-  Future<void> _usbSend(GamepadCommand command) async {
-    if (_usbPort == null) throw StateError('USB: port not open');
-    final bytes = command.toUsbBytes();
-    await _usbPort!.write(bytes);
-    _record('USB TX: ${_hexDump(bytes)}');
-  }
-
-  Future<void> _usbDisconnect() async {
-    await _usbRxSub?.cancel();
-    await _usbEventSub?.cancel();
-    _usbRxSub = null;
-    _usbEventSub = null;
-    try {
-      await _usbPort?.close();
-    } catch (_) {
-      /* ignore */
+  Future<void> _bleSend(GamepadCommand command) async {
+    if (_btConnection == null || !_btConnection!.isConnected) {
+      throw StateError('BT: not connected');
     }
-    _usbPort = null;
-    _record('USB port closed');
-    // Re-arm the hot-plug listener so the next attach event is caught.
-    _initUsbEventListener();
+    _btConnection!.output.add(utf8.encode(command.toJsonFrame()));
+    await _btConnection!.output.allSent;
   }
 
-  // ── Inbound / event handlers ───────────────────────────────────────────────
-
-  void _onUsbData(Uint8List data) {
-    _record('USB RX [${data.length}B]: ${_hexDump(data)}');
+  Future<void> _bleDisconnect() async {
+    _userRequestedDisconnect = true;
+    // finish() flushes the output buffer before closing (vs close() which is abrupt).
+    await _btConnection?.finish();
+    _btConnection = null;
+    _setState(ServiceConnectionState.disconnected, 'BT: disconnected');
+    _record('BT: disconnected (user requested)');
   }
 
-  void _onUsbError(Object error) {
-    _record('USB error: $error', level: LogLevel.error);
-    _setState(ServiceConnectionState.error, 'USB error: $error');
+  void _onBleData(Uint8List data) {
+    _record('BT ← ${utf8.decode(data, allowMalformed: true).trimRight()}');
+  }
+
+  void _onBleError(Object error, StackTrace stack) {
+    _record('BT error: $error', level: LogLevel.error);
+    _btConnection = null;
+    _setState(ServiceConnectionState.error, 'BT error: $error');
+    if (!_userRequestedDisconnect) _scheduleBleReconnect();
+  }
+
+  void _onBleDone() {
+    _record('BT: connection closed by remote');
+    _btConnection = null;
+    _setState(ServiceConnectionState.disconnected, 'BT: disconnected');
+    if (!_userRequestedDisconnect) _scheduleBleReconnect();
+  }
+
+  void _scheduleBleReconnect() {
+    if (_bleRetryCount >= _maxBleRetries) {
+      _record('BT: max retries ($_maxBleRetries) reached — giving up');
+      _setState(ServiceConnectionState.error, 'BT: could not reconnect');
+      return;
+    }
+    final delay = Duration(
+      milliseconds: (500 * (1 << _bleRetryCount)).clamp(500, 16000),
+    );
+    _bleRetryCount++;
+    _record(
+      'BT: scheduling retry $_bleRetryCount in ${delay.inMilliseconds} ms',
+    );
+    Future.delayed(delay, () {
+      if (!_userRequestedDisconnect) connect();
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  //  USB / ADB tunnel
+  //
+  //  USB mode reuses the Wi-Fi TCP stack by temporarily patching _wifiHost to
+  //  127.0.0.1.  ADB forwards phone-side localhost:_wifiPort to PC-side
+  //  localhost:_wifiPort where BeastReceiver is listening — no C# changes needed.
+  //
+  //  One-time setup:
+  //    1. Enable USB Debugging on the phone (Developer Options).
+  //    2. Connect USB cable.
+  //    3. On PC, run once:  adb forward tcp:5000 tcp:5000
+  //    4. In CTRLFORGE, select "USB (ADB)" and press CONNECT.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  StreamSubscription<UsbEvent>? _usbEventSub;
+
+  Future<void> _usbConnect() async {
+    _record('USB mode: ADB tunnel (tcp:$_wifiPort → tcp:$_wifiPort)');
+    // Temporarily override host to loopback; restore in finally so Settings
+    // are never mutated on error.
+    final String savedHost = _wifiHost;
+    _wifiHost = '127.0.0.1';
+    try {
+      await _wifiConnect();
+    } finally {
+      _wifiHost = savedHost;
+    }
   }
 
   void _onUsbEvent(UsbEvent event) {
     _record(
-      'USB event: ${event.event} '
-      '- ${event.device?.productName ?? "unknown device"}',
+      'USB event: ${event.event} — '
+      '${event.device?.productName ?? "unknown device"}',
     );
     final isDetach = event.event == UsbEvent.ACTION_USB_DETACHED;
-    final devices = isDetach || event.device == null
-        ? <UsbDevice>[]
-        : [event.device!];
-    _onUsbDeviceEvent(devices);
+    _onUsbDeviceEvent(
+      isDetach || event.device == null ? [] : [event.device!],
+    );
   }
 
   void _onUsbDeviceEvent(List<UsbDevice> devices) {
-    if (_usbPort != null && devices.isEmpty) {
-      _record('USB device removed', level: LogLevel.warning);
-      _setState(ServiceConnectionState.disconnected, 'USB device unplugged');
-    } else if (devices.isNotEmpty) {
+    if (devices.isEmpty) {
+      if (_activeMode == ActiveMode.usb && isConnected) {
+        _record('USB device removed', level: LogLevel.warning);
+        _setState(ServiceConnectionState.disconnected, 'USB device unplugged');
+      }
+    } else {
       _record('USB device attached (${devices.length} device(s))');
-      // Auto-connect if USB mode is active and not already connected.
       if (_activeMode == ActiveMode.usb &&
           _connState == ServiceConnectionState.disconnected &&
           !_userRequestedDisconnect) {
@@ -10391,7 +10272,7 @@ class ConnectivityService extends ChangeNotifier {
 
   Future<void> _onTransportError(Object error) async {
     _setState(ServiceConnectionState.error, 'Transport error: $error');
-    // Auto-reconnect only for Wi-Fi; BLE and USB require user action.
+    // Auto-reconnect only for Wi-Fi; BT and USB require user action.
     if (_activeMode == ActiveMode.wifi) _scheduleWifiReconnect();
   }
 
@@ -10409,33 +10290,18 @@ class ConnectivityService extends ChangeNotifier {
     if (_entries.length > _maxLogEntries) _entries.removeAt(0);
   }
 
-  static String _hexDump(Uint8List bytes, {int maxBytes = 24}) {
-    final slice = bytes.length > maxBytes ? bytes.sublist(0, maxBytes) : bytes;
-    final hex = slice
-        .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
-        .join(' ');
-    return bytes.length > maxBytes ? '$hex …(${bytes.length}B)' : hex;
-  }
-
   // ══════════════════════════════════════════════════════════════════════════
   //  Disposal
   // ══════════════════════════════════════════════════════════════════════════
 
   @override
   Future<void> dispose() async {
+    _heartbeatTimer?.cancel();
     _wifiCancelReconnect();
     await _tcpRxSub?.cancel();
     await _tcpSocket?.close();
-
-    await _bleScanSub?.cancel();
-    await _bleNotifySub?.cancel();
-    await _bleConnStateSub?.cancel();
-    await _bleDevice?.disconnect();
-
-    await _usbRxSub?.cancel();
+    await _btConnection?.finish();
     await _usbEventSub?.cancel();
-    await _usbPort?.close();
-
     super.dispose();
   }
 }

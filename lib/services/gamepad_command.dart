@@ -5,7 +5,8 @@
 
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart'; // @immutable
+import 'package:flutter/foundation.dart';
+import 'dart:convert'; // jsonEncode// @immutable
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Command type taxonomy
@@ -14,8 +15,8 @@ import 'package:flutter/foundation.dart'; // @immutable
 /// Coarse category of a gamepad input event.
 enum CommandType {
   button, // digital: A / B / X / Y / shoulder / start / select …
-  axis,   // analogue stick axis: LS_X, LS_Y, RS_X, RS_Y, LT, RT
-  dpad,   // 8-way hat switch: up / down / left / right / diagonals
+  axis, // analogue stick axis: LS_X, LS_Y, RS_X, RS_Y, LT, RT
+  dpad, // 8-way hat switch: up / down / left / right / diagonals
   rumble, // force-feedback intensity command
   system,
 }
@@ -78,19 +79,17 @@ class GamepadCommand {
   /// {"v":1,"type":"button","id":"A","value":1,"ts":1718123456789}
   /// ```
   String toJsonFrame() {
-    final map = <String, dynamic>{
-      'v': kProtoVersion,
-      'type': type.name,
-      'id': id,
-      'value': value,
-      'ts': timestamp.millisecondsSinceEpoch,
-    };
-    // Manual encoding avoids a hard dependency on dart:convert at model level.
-    // If you already import dart:convert elsewhere, replace with jsonEncode(map).
-    final parts = map.entries
-        .map((e) => '"${e.key}":${e.value is String ? '"${e.value}"' : e.value}')
-        .join(',');
-    return '{$parts}\n';
+    // jsonEncode correctly escapes all special characters in string values.
+    // The trailing '\n' is the newline delimiter BeastReceiver's StreamReader
+    // expects (ReadLine() / split on '\n').
+    return jsonEncode({
+          'v': kProtoVersion,
+          'type': type.name,
+          'id': id,
+          'value': value,
+          'ts': timestamp.millisecondsSinceEpoch,
+        }) +
+        '\n';
   }
 
   // ── USB / Serial serialiser ─────────────────────────────────────────────────
@@ -116,14 +115,14 @@ class GamepadCommand {
     final idB1 = id.length > 1 ? id.codeUnitAt(1) & 0xFF : 0x00;
 
     return Uint8List.fromList([
-      kFrameHeader,       // 0xAA
-      kProtoVersion,      // 0x01
-      type.index,         // 0-3
-      idB0,               // id byte 0
-      idB1,               // id byte 1
-      msb,                // value MSB
-      lsb,                // value LSB
-      kFrameFooter,       // 0x55
+      kFrameHeader, // 0xAA
+      kProtoVersion, // 0x01
+      type.index, // 0-3
+      idB0, // id byte 0
+      idB1, // id byte 1
+      msb, // value MSB
+      lsb, // value LSB
+      kFrameFooter, // 0x55
     ]);
   }
 
@@ -141,15 +140,15 @@ class GamepadCommand {
   @override
   String toString() =>
       'GamepadCommand(type:${type.name}, id:$id, value:$value, '
-          'ts:${timestamp.millisecondsSinceEpoch})';
+      'ts:${timestamp.millisecondsSinceEpoch})';
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is GamepadCommand &&
-              other.type == type &&
-              other.id == id &&
-              other.value == value;
+      other is GamepadCommand &&
+          other.type == type &&
+          other.id == id &&
+          other.value == value;
 
   @override
   int get hashCode => Object.hash(type, id, value);
@@ -179,15 +178,16 @@ extension GamepadCommandFactory on GamepadCommand {
   /// Shorthand for a rumble intensity command (0–255).
   static GamepadCommand rumble({required int left, required int right}) =>
       GamepadCommand(
-          type: CommandType.rumble,
-          id: 'RUMBLE',
-          value: (left.clamp(0, 15) << 4) | right.clamp(0, 15));
+        type: CommandType.rumble,
+        id: 'RUMBLE',
+        value: (left.clamp(0, 15) << 4) | right.clamp(0, 15),
+      );
 
   static GamepadCommand setProfile(String profileId) {
     return GamepadCommand(
       type: CommandType.system,
       id: 'SET_PROFILE',
-      value: profileId == 'xbox360' ? 0 : 1,  // 0 = Xbox 360, 1 = DS4
+      value: profileId == 'xbox360' ? 0 : 1, // 0 = Xbox 360, 1 = DS4
     );
   }
 

@@ -10,6 +10,7 @@ import '../services/connectivity_service.dart';
 import '../services/gamepad_command.dart';
 import '../theme/app_theme.dart';
 import 'layout_editor_overlay.dart'; // REQUIRED TO OPEN THE EDITOR
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 class SettingsOverlay extends StatefulWidget {
   final VoidCallback onOpenLayoutEditor;
@@ -174,6 +175,72 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
     );
   }
 
+  // Add this method to _SettingsOverlayState:
+  Widget _buildBluetoothPicker(
+    BuildContext context,
+    ConnectivityService network,
+    Color accent,
+  ) {
+    return FutureBuilder<List<BluetoothDevice>>(
+      future: network.getBondedDevices(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        }
+        final devices = snapshot.data ?? [];
+        if (devices.isEmpty) {
+          return Text(
+            'No paired devices found.\nPair your PC in Android Bluetooth Settings first.',
+            style: AppTheme.labelStyle(11, color: AppTheme.kTextSecondary),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'SELECT PAIRED DEVICE',
+              style: AppTheme.labelStyle(11, color: AppTheme.kTextSecondary),
+            ),
+            const SizedBox(height: 6),
+            ...devices.map((device) {
+              return ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.bluetooth, color: accent, size: 16),
+                title: Text(
+                  device.name ?? device.address,
+                  style: AppTheme.labelStyle(13),
+                ),
+                subtitle: Text(
+                  device.address,
+                  style: AppTheme.labelStyle(
+                    10,
+                    color: AppTheme.kTextSecondary,
+                  ),
+                ),
+                onTap: () async {
+              // 1. Store the target
+               network.setBluetoothTarget(
+               device.address,
+                device.name,
+                        );
+              // 2. Connect immediately — no need to press CONNECT separately
+                  Navigator.of(context).maybePop(); // close any dialog if applicable
+                  await network.connect();
+                },
+              );
+            }),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeNotifier>();
@@ -300,6 +367,12 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                               ),
                               const SizedBox(height: 8),
                             ],
+                            if (network.activeMode == ActiveMode.bluetooth) ...[
+                              const SizedBox(height: 8),
+                              _buildBluetoothPicker(context, network, accent),
+                              const SizedBox(height: 8),
+                            ],
+
                             _buildSegmentedControl<ActiveMode>(
                               value: network.activeMode,
                               options: const {
