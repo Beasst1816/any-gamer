@@ -203,7 +203,7 @@ class ConnectivityService extends ChangeNotifier {
           // USB (ADB) mode shares the same TCP stack as Wi-Fi.
           _wifiSend(command);
         case ActiveMode.bluetooth:
-          await _bleSend(command);
+          _bleSend(command);
       }
     } catch (e) {
       _record('Send error: $e', level: LogLevel.error);
@@ -211,23 +211,32 @@ class ConnectivityService extends ChangeNotifier {
     }
   }
 
+  // C6: pauseInput() sends PING heartbeat only for TCP-based modes (wifi/usb).
+  // BT SPP maintains its own link-layer keep-alive; a TCP PING would be
+  // meaningless on a BluetoothConnection output sink.
   void pauseInput() {
     if (connectionState != ServiceConnectionState.connected) return;
     _isInputPaused = true;
     _heartbeatTimer?.cancel();
-    // Keep-alive packet every 5 s to prevent TCP idle timeouts.
-    // Use socket.add(utf8.encode()) — NOT socket.write() — to avoid latin-1 encoding.
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      _tcpSocket?.add(
-        utf8.encode('{"type":"system","id":"PING","value":0}\n'),
-      );
-    });
+    if (_activeMode == ActiveMode.wifi || _activeMode == ActiveMode.usb) {
+      // Keep-alive packet every 5 s to prevent TCP idle timeouts.
+      // Use socket.add(utf8.encode()) — NOT socket.write() — to avoid latin-1 encoding.
+      _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        _tcpSocket?.add(
+          utf8.encode('{"type":"system","id":"PING","value":0}\n'),
+        );
+      });
+    }
+    // BT mode: no heartbeat needed — RFCOMM keep-alive is handled at the
+    // Bluetooth stack level. Skipping avoids spurious allSent futures.
   }
 
+  // C4: resumeInput() re-connects for BOTH wifi AND usb modes (both use TCP).
   void resumeInput() {
     _isInputPaused = false;
     _heartbeatTimer?.cancel();
-    if (!isConnected && _activeMode == ActiveMode.wifi) {
+    if (!isConnected &&
+        (_activeMode == ActiveMode.wifi || _activeMode == ActiveMode.usb)) {
       _wifiRetryCount = 0;
       connect();
     }
@@ -235,6 +244,9 @@ class ConnectivityService extends ChangeNotifier {
 
   // ══════════════════════════════════════════════════════════════════════════
   //  Wi-Fi / TCP
+  //
+  //  Happy path: UDP broadcast discovers server → TCP connect → 60Hz commands.
+  //  Main failure: server unreachable → exponential back-off reconnect (max 5).
   // ══════════════════════════════════════════════════════════════════════════
 
   String _wifiHost;
@@ -399,7 +411,11 @@ class ConnectivityService extends ChangeNotifier {
 
   // ══════════════════════════════════════════════════════════════════════════
   //  Bluetooth Classic SPP
-  // ══════════════════════════════════════════════════════════════════════════
+  //
+  //  Happy path: UI calls getBondedDevices() → picker → setBluetoothTarget()
+  //              → connect() → SPP RFCOMM link → fire-and-forget 60Hz sends.
+  //  Main failure: device out of range → toAddress() hangs → 10s timeout
+  //                triggers StateError → exponential retry via cancellable Timer.
   //
   // FlutterBluetoothSerial does NOT have a pickDevice() method.
   // Device selection is a two-step UI flow:
@@ -411,6 +427,10 @@ class ConnectivityService extends ChangeNotifier {
   BluetoothConnection? _btConnection;
   int _bleRetryCount = 0;
   static const int _maxBleRetries = 6; // 500 ms → 1 s → 2 s → 4 s → 8 s → 16 s
+  static const Duration _bleConnectTimeout = Duration(seconds: 10);
+
+  // C3: stored Timer so _bleDisconnect() can cancel any pending retry.
+  Timer? _bleReconnectTimer;
 
   /// Address and display name of the device selected by the UI.
   String? _bleTargetAddress;
@@ -446,6 +466,8 @@ class ConnectivityService extends ChangeNotifier {
   /// Connects to [_bleTargetAddress] via Classic BT SPP (RFCOMM).
   ///
   /// Throws [StateError] if [setBluetoothTarget] has not been called first.
+  /// C2: wraps toAddress() with a 10s timeout to prevent indefinite hangs on
+  /// out-of-range devices.
   Future<void> _bleConnect() async {
     final address = _bleTargetAddress;
     if (address == null) {
@@ -460,10 +482,10 @@ class ConnectivityService extends ChangeNotifier {
       'BT: connecting to $displayName…',
     );
 
-    // FIX (doc-3 regression): removed the spurious `await _btConnection?.finish()`
-    // that was placed immediately after toAddress(), which closed the connection
-    // the instant it was opened before the listener was ever attached.
-    _btConnection = await BluetoothConnection.toAddress(address);
+    // C2: timeout guards against toAddress() hanging on an out-of-range device.
+    _btConnection = await BluetoothConnection.toAddress(
+      address,
+    ).timeout(_bleConnectTimeout);
 
     _btConnection!.input!.listen(
       _onBleData,
@@ -477,17 +499,23 @@ class ConnectivityService extends ChangeNotifier {
     _setState(ServiceConnectionState.connected, 'BT: $displayName');
   }
 
-  Future<void> _bleSend(GamepadCommand command) async {
+  // C1: _bleSend() is fire-and-forget — does NOT await allSent per-command.
+  // At 60Hz, awaiting allSent creates 120+ concurrent futures and floods the
+  // RFCOMM sink, causing disconnects. Flush happens once in _bleDisconnect().
+  void _bleSend(GamepadCommand command) {
     if (_btConnection == null || !_btConnection!.isConnected) {
       throw StateError('BT: not connected');
     }
     _btConnection!.output.add(utf8.encode(command.toJsonFrame()));
-    await _btConnection!.output.allSent;
   }
 
   Future<void> _bleDisconnect() async {
     _userRequestedDisconnect = true;
+    // C3: cancel any pending retry Timer before tearing down the connection.
+    _bleReconnectTimer?.cancel();
+    _bleReconnectTimer = null;
     // finish() flushes the output buffer before closing (vs close() which is abrupt).
+    // This is the ONE point where we flush accumulated fire-and-forget sends.
     await _btConnection?.finish();
     _btConnection = null;
     _setState(ServiceConnectionState.disconnected, 'BT: disconnected');
@@ -512,6 +540,8 @@ class ConnectivityService extends ChangeNotifier {
     if (!_userRequestedDisconnect) _scheduleBleReconnect();
   }
 
+  // C3: uses a stored Timer (not Future.delayed) so it can be cancelled by
+  // _bleDisconnect() if the user disconnects before the retry fires.
   void _scheduleBleReconnect() {
     if (_bleRetryCount >= _maxBleRetries) {
       _record('BT: max retries ($_maxBleRetries) reached — giving up');
@@ -525,13 +555,19 @@ class ConnectivityService extends ChangeNotifier {
     _record(
       'BT: scheduling retry $_bleRetryCount in ${delay.inMilliseconds} ms',
     );
-    Future.delayed(delay, () {
+    _bleReconnectTimer = Timer(delay, () {
+      _bleReconnectTimer = null;
       if (!_userRequestedDisconnect) connect();
     });
   }
 
   // ══════════════════════════════════════════════════════════════════════════
   //  USB / ADB tunnel
+  //
+  //  Happy path: cable plugged → ADB forward active → auto-connect fires →
+  //              TCP to 127.0.0.1:_wifiPort → 60Hz commands flow.
+  //  Main failure: ADB forward not running → TCP connect fails → error state
+  //                (no auto-retry; user must run `adb forward` then replug).
   //
   //  USB mode reuses the Wi-Fi TCP stack by temporarily patching _wifiHost to
   //  127.0.0.1.  ADB forwards phone-side localhost:_wifiPort to PC-side
@@ -565,11 +601,13 @@ class ConnectivityService extends ChangeNotifier {
       '${event.device?.productName ?? "unknown device"}',
     );
     final isDetach = event.event == UsbEvent.ACTION_USB_DETACHED;
-    _onUsbDeviceEvent(
-      isDetach || event.device == null ? [] : [event.device!],
-    );
+    _onUsbDeviceEvent(isDetach || event.device == null ? [] : [event.device!]);
   }
 
+  // C5: auto-connect is mode-guarded AND checks that no connection is already
+  // active. Checking _connState == disconnected alone is insufficient because
+  // a BT connection in another mode also shows as connected, not disconnected —
+  // the explicit activeMode guard prevents cross-mode double-connect.
   void _onUsbDeviceEvent(List<UsbDevice> devices) {
     if (devices.isEmpty) {
       if (_activeMode == ActiveMode.usb && isConnected) {
@@ -579,7 +617,8 @@ class ConnectivityService extends ChangeNotifier {
     } else {
       _record('USB device attached (${devices.length} device(s))');
       if (_activeMode == ActiveMode.usb &&
-          _connState == ServiceConnectionState.disconnected &&
+          !isConnected &&
+          _connState != ServiceConnectionState.connecting &&
           !_userRequestedDisconnect) {
         _record('USB: auto-connecting on device attach…');
         connect();
@@ -615,10 +654,12 @@ class ConnectivityService extends ChangeNotifier {
   //  Disposal
   // ══════════════════════════════════════════════════════════════════════════
 
+  // C7: all timers, subscriptions, sockets, and BT connections are released.
   @override
   Future<void> dispose() async {
     _heartbeatTimer?.cancel();
     _wifiCancelReconnect();
+    _bleReconnectTimer?.cancel();
     await _tcpRxSub?.cancel();
     await _tcpSocket?.close();
     await _btConnection?.finish();

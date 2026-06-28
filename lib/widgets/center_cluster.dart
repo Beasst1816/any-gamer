@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/theme_notifier.dart';
 import '../theme/app_theme.dart';
+import '../models/layout_notifier.dart'; // ADD
 
 class CenterCluster extends StatelessWidget {
   final double width;
@@ -25,6 +26,7 @@ class CenterCluster extends StatelessWidget {
     final double pillWidth = width * 0.32;
     final double pillHeight = height * 0.35;
     final double guideSize = height * 0.70;
+    final double toggleSize = pillHeight;
 
     return SizedBox(
       width: width,
@@ -34,6 +36,7 @@ class CenterCluster extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _MenuButton(id: 'BTN_SELECT', label: 'SELECT', width: pillWidth, height: pillHeight, onSignal: onSignal),
+           _CameraModeToggle(size: toggleSize),
           _GuideButton(id: 'BTN_MODE', size: guideSize, onSignal: onSignal, onLongPress: onOpenSettings),
           _MenuButton(id: 'BTN_START', label: 'START', width: pillWidth, height: pillHeight, onSignal: onSignal),
         ],
@@ -197,6 +200,98 @@ class _GuideButtonState extends State<_GuideButton> {
                 ),
                 alignment: Alignment.center,
                 child: Icon(Icons.flash_on, color: pressed ? Colors.white : accent, size: widget.size * 0.55),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// Camera ↔ Joystick Mode Toggle
+// Reads LayoutNotifier directly — no callback needed; it's a pure UI control.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CameraModeToggle extends StatefulWidget {
+  final double size;
+  const _CameraModeToggle({required this.size});
+
+  @override
+  State<_CameraModeToggle> createState() => _CameraModeToggleState();
+}
+
+class _CameraModeToggleState extends State<_CameraModeToggle> {
+  final ValueNotifier<bool> _isPressed = ValueNotifier(false);
+
+  @override
+  void dispose() {
+    _isPressed.dispose();
+    super.dispose();
+  }
+
+  void _onPointerDown(PointerDownEvent e) {
+    _isPressed.value = true;
+    HapticFeedback.mediumImpact();
+  }
+
+  void _onPointerUp(PointerUpEvent e) {
+    _isPressed.value = false;
+    // Atomic toggle — camera zone ON ↔ r_stick ON
+    context.read<LayoutNotifier>().toggleCameraMode();
+  }
+
+  void _onPointerCancel(PointerCancelEvent e) {
+    _isPressed.value = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isCameraMode = context.watch<LayoutNotifier>().isCameraMode;
+    final accent = context.watch<ThemeNotifier>().accentColor;
+
+    return Listener(
+      onPointerDown: _onPointerDown,
+      onPointerUp: _onPointerUp,
+      onPointerCancel: _onPointerCancel,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isPressed,
+        builder: (context, pressed, _) {
+          // Active = camera mode ON; accent glow shows which mode is live.
+          final bool glowing = isCameraMode || pressed;
+
+          return AnimatedScale(
+            scale: pressed ? 0.88 : 1.0,
+            duration: const Duration(milliseconds: 60),
+            child: RepaintBoundary(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: widget.size,
+                height: widget.size,
+                decoration: BoxDecoration(
+                  color: glowing
+                      ? accent.withAlpha(30)
+                      : AppTheme.kHudSurface,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: glowing ? accent : AppTheme.kHudBorder,
+                    width: 1.5,
+                  ),
+                  boxShadow: glowing
+                      ? [BoxShadow(color: accent.withAlpha(100), blurRadius: 10, spreadRadius: 1)]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: Icon(
+                    // Camera icon when ON, gamepad icon when OFF
+                    isCameraMode ? Icons.touch_app : Icons.gamepad_outlined,
+                    key: ValueKey(isCameraMode),
+                    color: glowing ? accent : AppTheme.kTextSecondary,
+                    size: widget.size * 0.52,
+                  ),
+                ),
               ),
             ),
           );

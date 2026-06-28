@@ -38,7 +38,8 @@ class _LayoutEditorOverlayState extends State<LayoutEditorOverlay> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeNotifier>();
-    final layout = context.watch<LayoutNotifier>();
+    final layout = context.read<LayoutNotifier>();
+
     final accent = theme.accentColor;
 
     return Stack(
@@ -62,7 +63,8 @@ class _LayoutEditorOverlayState extends State<LayoutEditorOverlay> {
             child: SafeArea(
               child: _TopBar(
                 accent: accent,
-                onReset: layout.resetPositions,
+                // FIXED: Wrapped the method call in an anonymous function
+                onReset: () => layout.resetToDefault(layout.isXbox),
                 onDone: _close,
                 // Pass the hide function down
                 onHide: () => setState(() => _isMenuVisible = false),

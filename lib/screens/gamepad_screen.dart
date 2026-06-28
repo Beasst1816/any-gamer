@@ -102,6 +102,8 @@ class _GamepadScreenState extends State<GamepadScreen>
       0.5,
       2.0,
     );
+    final cameraSens = (0.5 + (settings.cameraSensitivity / 100.0) * 2.5)
+    .clamp(0.5, 3.0);
 
     void handleSignal(String id, bool isPressed) {
       final cmd = isPressed
@@ -156,6 +158,7 @@ class _GamepadScreenState extends State<GamepadScreen>
                           onOpenSettings: _openSettings,
                           deadzoneNormalized: deadzone,
                           sensitivityMultiplier: sensitivity,
+                          cameraSensitivity: cameraSens,
                         )
                       : PSLayout(
                           onSignal: handleSignal,
@@ -163,6 +166,7 @@ class _GamepadScreenState extends State<GamepadScreen>
                           onOpenSettings: _openSettings,
                           deadzoneNormalized: deadzone,
                           sensitivityMultiplier: sensitivity,
+                           cameraSensitivity: cameraSens,
                         ),
                 ),
 

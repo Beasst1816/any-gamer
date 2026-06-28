@@ -9,6 +9,7 @@ import 'dpad_widget.dart';
 import 'thumbstick_widget.dart';
 import 'face_button_cluster.dart';
 import 'center_cluster.dart';
+import 'camera_scroll_area.dart';
 
 class PSLayout extends StatelessWidget {
   final void Function(String id, bool pressed) onSignal;
@@ -16,6 +17,7 @@ class PSLayout extends StatelessWidget {
   final VoidCallback onOpenSettings;
   final double deadzoneNormalized;
   final double sensitivityMultiplier;
+  final double cameraSensitivity;
 
   const PSLayout({
     super.key,
@@ -24,6 +26,7 @@ class PSLayout extends StatelessWidget {
     required this.onOpenSettings,
     required this.deadzoneNormalized,
     required this.sensitivityMultiplier,
+    this.cameraSensitivity = 1.5,
   });
 
   @override
@@ -96,7 +99,9 @@ class PSLayout extends StatelessWidget {
         Widget buildPositioned(String key, Widget child) {
           final pos = layout.getPos(key);
 
-          if (!layout.isVisible(key)) return const SizedBox.shrink();
+          final bool effectivelyVisible =
+              layout.isVisible(key) || (layout.isEditing && key == 'r_stick');
+          if (!effectivelyVisible) return const SizedBox.shrink();
 
           final posChild = Positioned(
             left: pos.dx * w,
@@ -144,6 +149,17 @@ class PSLayout extends StatelessWidget {
 
         return Stack(
           children: [
+            if (layout.isVisible('camera_zone') && !layout.isEditing)
+              Positioned(
+                left: w * 0.35,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                child: CameraScrollArea(
+                  onAxis: onAxis,
+                  cameraSensitivity: cameraSensitivity,
+                ),
+              ),
             buildPositioned(
               'lt',
               LTButton(

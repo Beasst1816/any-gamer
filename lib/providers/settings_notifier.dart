@@ -8,6 +8,8 @@ class SettingsNotifier extends ChangeNotifier {
   static const String _userScaleKey = 'userScale';
   static const String _wifiHostKey = 'wifi_host';
   static const String _wifiPortKey = 'wifi_port';
+  static const String _cameraSensKey = 'camera_sensitivity'; // ADD
+  static const double _defaultCameraSens = 40.0;
 
   static const double _defaultSensitivity = 75.0;
   static const double _defaultDeadzone = 12.0;
@@ -23,6 +25,7 @@ class SettingsNotifier extends ChangeNotifier {
   late double _userScale;
   late String _wifiHost;
   late int _wifiPort;
+  late double _cameraSensitivity;
 
   SettingsNotifier(SharedPreferences prefs) {
     _prefs = prefs;
@@ -36,6 +39,7 @@ class SettingsNotifier extends ChangeNotifier {
     _userScale = _prefs.getDouble(_userScaleKey) ?? _defaultUserScale;
     _wifiHost = _prefs.getString(_wifiHostKey) ?? _defaultWifiHost;
     _wifiPort = _prefs.getInt(_wifiPortKey) ?? _defaultWifiPort;
+    _cameraSensitivity = _prefs.getDouble(_cameraSensKey) ?? _defaultCameraSens;
   }
 
   double get sensitivity => _sensitivity;
@@ -44,6 +48,7 @@ class SettingsNotifier extends ChangeNotifier {
   double get userScale => _userScale;
   String get wifiHost => _wifiHost;
   int get wifiPort => _wifiPort;
+  double get cameraSensitivity => _cameraSensitivity;
 
   Future<void> setSensitivity(double val) async {
     _sensitivity = val;
@@ -111,6 +116,20 @@ class SettingsNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setCameraSensitivity(double val) async {
+    // ADD
+    _cameraSensitivity = val; // ADD
+    try {
+      // ADD
+      await _prefs.setDouble(_cameraSensKey, val); // ADD
+    } catch (e) {
+      // ADD
+      print('Error persisting camera sensitivity: $e'); // ADD
+      rethrow; // ADD
+    } // ADD
+    notifyListeners(); // ADD
+  }
+
   Future<void> reset() async {
     _sensitivity = _defaultSensitivity;
     _deadzone = _defaultDeadzone;
@@ -118,6 +137,8 @@ class SettingsNotifier extends ChangeNotifier {
     _userScale = _defaultUserScale;
     _wifiHost = _defaultWifiHost;
     _wifiPort = _defaultWifiPort;
+    _cameraSensitivity = _defaultCameraSens; // ADD
+    await _prefs.setDouble(_cameraSensKey, _defaultCameraSens);
 
     try {
       await _prefs.setDouble(_sensitivityKey, _defaultSensitivity);

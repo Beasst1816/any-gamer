@@ -9,6 +9,7 @@ import 'dpad_widget.dart';
 import 'thumbstick_widget.dart';
 import 'face_button_cluster.dart';
 import 'center_cluster.dart';
+import 'camera_scroll_area.dart';
 
 class XboxLayout extends StatelessWidget {
   final void Function(String id, bool pressed) onSignal;
@@ -16,6 +17,7 @@ class XboxLayout extends StatelessWidget {
   final VoidCallback onOpenSettings;
   final double deadzoneNormalized;
   final double sensitivityMultiplier;
+  final double cameraSensitivity;
 
   const XboxLayout({
     super.key,
@@ -24,6 +26,7 @@ class XboxLayout extends StatelessWidget {
     required this.onOpenSettings,
     required this.deadzoneNormalized,
     required this.sensitivityMultiplier,
+    this.cameraSensitivity = 1.5,
   });
 
   @override
@@ -97,8 +100,9 @@ class XboxLayout extends StatelessWidget {
         Widget buildPositioned(String key, Widget child) {
           final pos = layout.getPos(key);
 
-          // Visibility check is handled exclusively here now
-          if (!layout.isVisible(key)) return const SizedBox.shrink();
+          final bool effectivelyVisible =
+              layout.isVisible(key) || (layout.isEditing && key == 'r_stick');
+          if (!effectivelyVisible) return const SizedBox.shrink();
 
           final posChild = Positioned(
             left: pos.dx * w,
@@ -146,6 +150,20 @@ class XboxLayout extends StatelessWidget {
 
         return Stack(
           children: [
+            if (layout.isVisible('camera_zone') && !layout.isEditing)
+              Positioned(
+                left:
+                    w *
+                    0.35, // Right 65% of HUD — covers the natural "look" area
+                top: 0,
+                right: 0,
+                bottom: 0,
+                child: CameraScrollArea(
+                  onAxis: onAxis,
+                  cameraSensitivity: cameraSensitivity,
+                ),
+              ),
+
             buildPositioned(
               'lt',
               LTButton(
